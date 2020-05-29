@@ -1,0 +1,18 @@
+chandler:
+    debug: true
+    websiteUrl: null
+    rootApp:    "root"
+    
+    preferences:
+        appendExtension: "xhtml"
+        adminUrl: "/chandlerd"
+        exposeChandler: true
+    
+    database:
+        dsn: "mysql:host=localhost;dbname=db"
+        user: "root"
+        password: "root"
+    
+    security:
+        secret: ""
+        sessionDuration: 14

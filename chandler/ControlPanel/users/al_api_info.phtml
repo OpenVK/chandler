@@ -1,0 +1,50 @@
+<?php
+use Chandler\Database\DatabaseConnection;
+
+if(!isset($_GET["GUID"])) exit(header("HTTP/1.1 400 Bad Request"));
+
+$db   = DatabaseConnection::i()->getContext();
+$user = $db->table("ChandlerUsers")->where("id", $_GET["GUID"])->fetch();
+if(!$user) exit(header("HTTP/1.1 404 Not Found"));
+
+$info = [
+	"id"        => $user->id,
+	"login"     => $user->login,
+	"isDeleted" => (bool) $user->deleted,
+];
+
+if($_GET["includeActionList"] ?? false) {
+	$info["permissions"] = [];
+	foreach((new Chandler\Security\User($user))->getPermissions()->getPermissions() as $perm) {
+		$info["permissions"][] = [
+			"state" => [
+				"humanReadable" => "Explicitly " . ucfirst($perm->status ? "allowed" : "disallowed"),
+				"state"         => (bool) $perm->status,
+			],
+			"conditions" => [
+				["humanReadable" => is_null($perm->context)
+				                   ? "Rule applied in all situations"
+				                   : ($perm->context === 0
+				                      ? "Models, that are owned by $user->login"
+				                      : "Only model with ID = $perm->context"),
+				"context" => $perm->context,],
+			],
+			"action"  => $perm->action,
+			"model"   => $perm->model,
+		];
+	}
+}
+
+if($_GET["includeSessions"] ?? false) {
+	$info["sessions"] = [];
+	foreach($user->related("ChandlerTokens.user") as $token) {
+		$info["sessions"][] = [
+			"token"      => $token->token,
+			"ip"         => $token->ip,
+			"userAgent"  => $token->ua,
+		];
+	}
+}
+
+header("Content-Type: application/json");
+echo json_encode($info);

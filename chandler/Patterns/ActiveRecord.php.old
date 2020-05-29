@@ -1,0 +1,34 @@
+<?php declare(strict_types=1);
+namespace Chandler\Patterns;
+use Chandler\Database\DatabaseConnection;
+
+class ActiveRecord
+{
+    private $db;    #DB
+    
+    private $table; #DATA
+    private $query;
+    private $row;
+    private $changes = [];
+    
+    protected $tableName;
+    protected $primaryKey = "id";
+    protected $timestamps = true;
+    protected $softDelete = true;
+    
+    function __construct()
+    {
+        $this->db    = DatabaseConnection::i();
+        $this->table = $this->db->table($this->tableName);
+        if(!is_null($row)) $this->row = $row;
+        
+        $this->resetQuery();
+    }
+    
+    private function resetQuery(): void
+    {
+        $this->query = clone $this->table;
+    }
+    
+    function __call()
+}
