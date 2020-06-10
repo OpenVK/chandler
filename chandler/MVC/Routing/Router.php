@@ -130,11 +130,13 @@ class Router
             
             $this->scope += array_merge_recursive($presenter->getTemplateScope(), []); #TODO: add default parameters
                                                                                        #TODO: move this to delegateView
-            $output       = $this->delegateView(
-                 $this->scope["_template"] ?? CHANDLER_EXTENSIONS_ENABLED . "/$namespace/Web/Presenters/templates/$presenterName/$action.xml",
-                 $presenter
-            );
-                    
+            
+            $tpl = $this->scope["_template"] ?? "$presenterName/$action.xml";
+            if($tpl[0] !== "/")
+                $tpl = CHANDLER_EXTENSIONS_ENABLED . "/$namespace/Web/Presenters/templates/$tpl";
+            
+            $output = $this->delegateView($tpl, $presenter);
+            
             $presenter->onAfterRender();
         } catch(InterruptedException $ex) {}
         
