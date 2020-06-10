@@ -32,7 +32,7 @@ abstract class SimplePresenter implements IPresenter
             $realpath = CHANDLER_EXTENSIONS_ENABLED . "/$domain/Web/static/$file";
             if(file_exists($realpath)) {
                 $hash = "sha384-" . base64_encode(hash_file("sha384", $realpath, true));
-                $mod  = bin2hex(filemtime($realpath));
+                $mod  = base_convert((string) (filemtime($realpath)), 10, 32);
                 echo "<link rel=\'stylesheet\' href=\'/assets/packages/static/$domain/$file?mod=$mod\' integrity=\'$hash\' />";
             } else {
                 echo "<!-- ERR: $file does not exist. Not including. -->";
@@ -44,7 +44,7 @@ abstract class SimplePresenter implements IPresenter
             $realpath = CHANDLER_EXTENSIONS_ENABLED . "/$domain/Web/static/$file";
             if(file_exists($realpath)) {
                 $hash = "sha384-" . base64_encode(hash_file("sha384", $realpath, true));
-                $mod  = bin2hex(filemtime($realpath));
+                $mod  = base_convert((string) (filemtime($realpath)), 10, 32);
                 echo "<script src=\'/assets/packages/static/$domain/$file?mod=$mod\' integrity=\'$hash\'></script>";
             } else {
                 echo "<!-- ERR: $file does not exist. Not including. -->";
