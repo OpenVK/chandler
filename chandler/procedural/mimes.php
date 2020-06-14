@@ -1,4 +1,5 @@
 <?php declare(strict_types=1);
+
 function system_extension_mime_types(): array
 {
     # Returns the system MIME type mapping of extensions to MIME types, as defined in /etc/mime.types.
@@ -19,7 +20,7 @@ function system_extension_mime_types(): array
     return $out;
 }
 
-function system_extension_mime_type(string $file): string
+function system_extension_mime_type(string $file): ?string
 {
     # Returns the system MIME type (as defined in /etc/mime.types) for the filename specified.
     #
@@ -60,7 +61,7 @@ function system_mime_type_extensions(): array
     return $out;
 }
 
-function system_mime_type_extension(string $type): string
+function system_mime_type_extension(string $type): ?string
 {
     # Returns the canonical file extension for the MIME type specified, as defined in /etc/mime.types (considering the first
     # extension listed to be canonical).
