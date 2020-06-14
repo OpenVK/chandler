@@ -171,7 +171,7 @@ class Router
             if($_SERVER["HTTP_IF_NONE_MATCH"] === $hash)
                 exit(header("HTTP/1.1 304"));
         
-        header("Content-Type: " . system_extension_mime_type($file));
+        header("Content-Type: " . system_extension_mime_type($file) ?? "text/plain; charset=unknown-8bit");
         header("Content-Size: " . filesize($file));
         header("ETag: $hash");
         
@@ -252,7 +252,8 @@ class Router
     
     function execute(string $url, ?string $parentModule = null): ?string
     {
-        $this->url = parse_url($url, PHP_URL_PATH);
+        $this->url = chandler_escape_url(parse_url($url, PHP_URL_PATH));
+        
         if(!is_null($parentModule)) {
             $GLOBALS["parentModule"]     = $parentModule;
             $this->scope["parentModule"] = $GLOBALS["parentModule"];
