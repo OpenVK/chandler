@@ -13,8 +13,16 @@ class DatabaseConnection
     
     private function __construct(string $dsn, string $user, string $password, ?string $tmpFolder = NULL)
     {
+        try {
+            $connection = new Database\Connection($dsn, $user, $password);
+        } catch(Database\ConnectionException $ex) {
+            if($ex->getCode() === "42000")
+                chandler_db_busy();
+            else
+                chandler_http_panic(503, "Service Temporarily Unavailable", "Error estabilishing database connection.");
+        }
+        
         $storage     = new FileStorage($tmpFolder ?? (CHANDLER_ROOT . "/tmp/cache/database"));
-        $connection  = new Database\Connection($dsn, $user, $password);
         $structure   = new Database\Structure($connection, $storage);
         $conventions = new DiscoveredConventions($structure);
         $context     = new Database\Context($connection, $structure, $conventions, $storage);
