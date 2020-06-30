@@ -23,7 +23,7 @@ class Bootstrap
      */
     private function registerDebugger(): void
     {
-        Debugger::enable(CHANDLER_ROOT_CONF["debug"] ? Debugger::DEVELOPMENT : Debugger::PRODUCTION);
+        Debugger::enable((CHANDLER_ROOT_CONF["debug"] ? Debugger::DEVELOPMENT : Debugger::PRODUCTION), __DIR__ . "/../logs");
         Debugger::getBar()->addPanel(new Chandler\Debug\DatabasePanel);
     }
     

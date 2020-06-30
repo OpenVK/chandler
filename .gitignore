@@ -19,3 +19,6 @@
 /htdocs/*
 !/htdocs/.htaccess
 !/htdocs/index.php
+
+/logs/*
+!/logs/.gitkeep
