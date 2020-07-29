@@ -86,12 +86,20 @@ class Authenticator
         $this->session->set("tok", $this->makeToken($user, CONNECTING_IP, $_SERVER["HTTP_USER_AGENT"]));
     }
     
-    function login(string $id, string $password): bool
+    function verifyCredentials(string $id, string $password): bool
     {
         $user = $this->db->table("ChandlerUsers")->get($id);
         if(!$user)
             return false;
         else if(!$this->verifyHash($password, $user->passwordHash))
+            return false;
+        
+        return true;
+    }
+    
+    function login(string $id, string $password): bool
+    {
+        if(!$this->verifyCredentials($id, $password))
             return false;
         
         $this->authenticate($id);
