@@ -174,6 +174,11 @@ abstract class SimplePresenter implements IPresenter
         return $_POST[$index] ?? NULL;
     }
     
+    protected function requestParam(string $index): ?string
+    {
+        return $_REQUEST[$index];
+    }
+    
     protected function checkbox(string $name): bool
     {
         return ($this->postParam($name) ?? "off") === "on";
