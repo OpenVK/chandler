@@ -64,7 +64,7 @@ class ExtensionManager
             spl_autoload_register(@create_function("\$class", "
                 if(!substr(\$class, 0, " . iconv_strlen("$name\\") . ") === \"$name\\\\\") return false;
                 
-                require_once CHANDLER_ROOT . \"/extensions/enabled/\" . str_replace(\"\\\\\", \"/\", \$class)  . \".php\";
+                include_once CHANDLER_ROOT . \"/extensions/enabled/\" . str_replace(\"\\\\\", \"/\", \$class)  . \".php\";
             "));
             
             define(mb_strtoupper($name) . "_ROOT", CHANDLER_ROOT . "/extensions/enabled/$name", false);
