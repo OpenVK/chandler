@@ -53,7 +53,7 @@ abstract class DBEntity
         $this->changes[$column] = $value;
     }
     
-    function getId(): int
+    function getId()
     {
         return $this->getRecord()->id;
     }
