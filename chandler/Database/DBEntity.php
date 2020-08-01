@@ -63,6 +63,11 @@ abstract class DBEntity
         return (bool) $this->getRecord()->deleted;
     }
     
+    function unwrap(): object
+    {
+        return (object) $this->getRecord()->toArray();
+    }
+    
     function delete(bool $softly = true): void
     {
         if(is_null($this->record))
