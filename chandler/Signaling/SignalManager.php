@@ -82,6 +82,43 @@ class SignalManager
     }
     
     /**
+     * Gets creation time of user's last event.
+     * If there is no events returns 1.
+     * 
+     * @api
+     * @param int $for User ID
+     * @return int
+     */
+    function tipFor(int $for): int
+    {
+        $statement = $this->connection->query("SELECT since FROM pool WHERE `for` = $for ORDER BY since DESC");
+        $result    = $statement->fetch(\PDO::FETCH_LAZY);
+        if(!$result) return 1;
+        
+        return $result->since;
+    }
+    
+    /**
+     * Gets history of long pool events.
+     * If there is no events returns empty array.
+     * 
+     * @api
+     * @param int $for User ID
+     * @param int|null $tip last sync time
+     * @return array
+     */
+    function getHistoryFor(int $for, ?int $tip = NULL, int $limit = 1000): array
+    {
+        $res   = [];
+        $tip   = $tip ?? $this->tipFor($for);
+        $query = $this->connection->query("SELECT * FROM pool WHERE `for` = $for AND `since` > $tip ORDER BY since DESC LIMIT $limit");
+        foreach($query as $event)
+            $res[] = unserialize(hex2bin($event["event"]));
+        
+        return $res;
+    }
+    
+    /**
      * Triggers event for user and sends signal to DB and listeners.
      * 
      * @api
