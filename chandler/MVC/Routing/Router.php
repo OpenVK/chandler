@@ -85,7 +85,7 @@ class Router
                 [$hash, $nonce] = $data;
                 
                 if(sodium_memcmp($this->makeCSRFToken($route, hex2bin($nonce)), "$hash#$nonce") === 0)
-                    $GLOBALS["csrfCheck"] = parse_url($_SERVER["HTTP_REFERER"], PHP_URL_HOST) === $_SERVER["HTTP_HOST"];
+                    $GLOBALS["csrfCheck"] = parse_url($_SERVER["HTTP_REFERER"], PHP_URL_HOST) === parse_url($_SERVER["HTTP_HOST"], PHP_URL_HOST);
             } catch(\SodiumException $ex) {}
         }
         
