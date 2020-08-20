@@ -15,4 +15,5 @@ chandler:
     
     security:
         secret: ""
+        csrfProtection: "permissive"
         sessionDuration: 14

@@ -74,19 +74,29 @@ class Router
     
     private function setCSRFStatus(Route $route): void
     {
-        $GLOBALS["csrfCheck"] = false;
-        
-        $hash = ($_GET["hash"] ?? ($_POST["hash"] ?? false));
-        if($hash !== false) {
-            $data = explode("#", $hash);
+        if(CHANDLER_ROOT_CONF["security"]["csrfProtection"] === "disabled") {
+            $GLOBALS["csrfCheck"] = true;
+        } else {
+            $GLOBALS["csrfCheck"] = false;
             
-            try {
-                if(!isset($data[0]) || !isset($data[1])) throw new \SodiumException;
-                [$hash, $nonce] = $data;
+            $hash = ($_GET["hash"] ?? ($_POST["hash"] ?? false));
+            if($hash !== false) {
+                $data = explode("#", $hash);
                 
-                if(sodium_memcmp($this->makeCSRFToken($route, hex2bin($nonce)), "$hash#$nonce") === 0)
-                    $GLOBALS["csrfCheck"] = parse_url($_SERVER["HTTP_REFERER"], PHP_URL_HOST) === parse_url($_SERVER["HTTP_HOST"], PHP_URL_HOST);
-            } catch(\SodiumException $ex) {}
+                try {
+                    if(!isset($data[0]) || !isset($data[1])) throw new \SodiumException;
+                    [$hash, $nonce] = $data;
+                    
+                    if(sodium_memcmp($this->makeCSRFToken($route, hex2bin($nonce)), "$hash#$nonce") === 0) {
+                        if(CHANDLER_ROOT_CONF["security"]["csrfProtection"] === "permissive")
+                            $GLOBALS["csrfCheck"] = true;
+                        else if(CHANDLER_ROOT_CONF["security"]["csrfProtection"] === "strict")
+                            $GLOBALS["csrfCheck"] = parse_url($_SERVER["HTTP_REFERER"], PHP_URL_HOST) === $_SERVER["HTTP_HOST"];
+                        else
+                            trigger_error("Bad value for chandler.security.csrfProtection: disabled, permissive or strict expected.", E_USER_ERROR);
+                    }
+                } catch(\SodiumException $ex) {}
+            }
         }
         
         $GLOBALS["csrfToken"] = $this->makeCSRFToken($route, openssl_random_pseudo_bytes(4));
