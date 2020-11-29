@@ -124,16 +124,18 @@ class Bootstrap
      * @internal
      * @return void
      */
-    function ignite(): void
+    function ignite(bool $headless = false): void
     {
-        header("Referrer-Policy: strict-origin-when-cross-origin");
-        
         $this->registerFunctions();
         $this->registerAutoloaders();
-        $this->defineIP();
         $this->registerDebugger();
         $this->igniteExtensions();
-        $this->route(function_exists("get_current_url") ? get_current_url() : $_SERVER["REQUEST_URI"]);
+        
+        if(!$headless) {
+            header("Referrer-Policy: strict-origin-when-cross-origin");
+            $this->defineIP();
+            $this->route(function_exists("get_current_url") ? get_current_url() : $_SERVER["REQUEST_URI"]);
+        }
     }
 }
 
