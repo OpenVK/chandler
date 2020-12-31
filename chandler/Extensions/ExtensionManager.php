@@ -67,8 +67,8 @@ class ExtensionManager
                 include_once CHANDLER_ROOT . \"/extensions/enabled/\" . str_replace(\"\\\\\", \"/\", \$class)  . \".php\";
             "));
             
-            define(mb_strtoupper($name) . "_ROOT", CHANDLER_ROOT . "/extensions/enabled/$name", false);
-            define(mb_strtoupper($name) . "_ROOT_CONF", chandler_parse_yaml(CHANDLER_ROOT . "/extensions/enabled/$name/$name.yml"), false);
+            define(str_replace("-", "_", mb_strtoupper($name)) . "_ROOT", CHANDLER_ROOT . "/extensions/enabled/$name", false);
+            define(str_replace("-", "_", mb_strtoupper($name)) . "_ROOT_CONF", chandler_parse_yaml(CHANDLER_ROOT . "/extensions/enabled/$name/$name.yml"), false);
             
             if(isset($configuration->init))
                 (require(CHANDLER_ROOT . "/extensions/enabled/$name/" . $configuration->init))();
