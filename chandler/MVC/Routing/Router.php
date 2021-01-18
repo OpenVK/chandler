@@ -237,10 +237,14 @@ class Router
     
     function readRoutes(string $filename, string $namespace, bool $autoprefix = true): void
     {
-        $config = yaml_parse_file($filename);
+        $config = chandler_parse_yaml($filename);
         
         if(isset($config["static"]))
             $this->pushStatic($namespace, CHANDLER_EXTENSIONS_ENABLED . "/$namespace/Web/$config[static]");
+        
+        if(isset($config["include"]))
+            foreach($config["include"] as $include)
+                $this->readRoutes(dirname($filename) . "/$include", $namespace, $autoprefix);
         
         foreach($config["routes"] as $route) {
             $route = (object) $route;
