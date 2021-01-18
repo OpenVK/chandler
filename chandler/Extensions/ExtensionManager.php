@@ -70,8 +70,11 @@ class ExtensionManager
             define(str_replace("-", "_", mb_strtoupper($name)) . "_ROOT", CHANDLER_ROOT . "/extensions/enabled/$name", false);
             define(str_replace("-", "_", mb_strtoupper($name)) . "_ROOT_CONF", chandler_parse_yaml(CHANDLER_ROOT . "/extensions/enabled/$name/$name.yml"), false);
             
-            if(isset($configuration->init))
-                (require(CHANDLER_ROOT . "/extensions/enabled/$name/" . $configuration->init))();
+            if(isset($configuration->init)) {
+                $init = require(CHANDLER_ROOT . "/extensions/enabled/$name/" . $configuration->init);
+                if(is_callable($init))
+                    $init();
+            }
             
             if(is_dir($hooks = CHANDLER_EXTENSIONS_ENABLED . "/$name/Hooks")) {
                 foreach(Finder::findFiles("*Hook.php")->in($hooks) as $hookFile) {
