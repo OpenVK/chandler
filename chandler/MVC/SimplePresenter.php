@@ -33,7 +33,7 @@ abstract class SimplePresenter implements IPresenter
             if(file_exists($realpath)) {
                 $hash = "sha384-" . base64_encode(hash_file("sha384", $realpath, true));
                 $mod  = base_convert((string) (filemtime($realpath)), 10, 32);
-                echo "<link rel=\'stylesheet\' href=\'/assets/packages/static/$domain/$file?mod=$mod\' integrity=\'$hash\' />";
+                echo "<link rel=\'stylesheet\' href=\'/assets/packages/static/$domain/$file?mod=$mod\' integrity=\'$hash\' crossorigin=\'anonymous\' />";
             } else {
                 echo "<!-- ERR: $file does not exist. Not including. -->";
             }
@@ -45,7 +45,7 @@ abstract class SimplePresenter implements IPresenter
             if(file_exists($realpath)) {
                 $hash = "sha384-" . base64_encode(hash_file("sha384", $realpath, true));
                 $mod  = base_convert((string) (filemtime($realpath)), 10, 32);
-                echo "<script src=\'/assets/packages/static/$domain/$file?mod=$mod\' integrity=\'$hash\'></script>";
+                echo "<script src=\'/assets/packages/static/$domain/$file?mod=$mod\' integrity=\'$hash\' crossorigin=\'anonymous\' ></script>";
             } else {
                 echo "<!-- ERR: $file does not exist. Not including. -->";
             }
@@ -176,7 +176,15 @@ abstract class SimplePresenter implements IPresenter
     
     protected function requestParam(string $index): ?string
     {
-        return $_REQUEST[$index];
+        return $_REQUEST[$index] ?? NULL;
+    }
+    
+    protected function jsonParam(string $index): ?string
+    {
+        if(!isset($GLOBALS["jsonInputCache"]))
+            $GLOBALS["jsonInputCache"] = json_decode($this->queryParam("js") ?? file_get_contents("php://input"), true);
+        
+        return $GLOBALS["jsonInputCache"][$index] ?? NULL;
     }
     
     protected function checkbox(string $name): bool
