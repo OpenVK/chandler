@@ -74,8 +74,7 @@ abstract class SimplePresenter implements IPresenter
             $ext   = explode("\\", get_class($this))[0];
             $path  = CHANDLER_EXTENSIONS_ENABLED . "/$ext/Web/Presenters/templates/" . $this->errorTemplate . ".xml";
             
-            $latte = new TemplatingEngine;
-            $latte->setTempDirectory(CHANDLER_ROOT . "/tmp/cache/templates");
+            $latte = $this->getTemplatingEngine();
             $latte->render($path, array_merge_recursive([
                 "code" => $code,
                 "desc" => $desc,
