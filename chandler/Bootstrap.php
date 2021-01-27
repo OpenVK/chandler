@@ -4,7 +4,6 @@ use Tracy\Debugger;
 
 define("CHANDLER_VER", "0.0.1", false);
 define("CHANDLER_ROOT", dirname(__FILE__) . "/..", false);
-define("CHANDLER_ROOT_CONF", yaml_parse_file(CHANDLER_ROOT . "/chandler.yml")["chandler"]);
 
 /**
  * Bootstrap class, that is called during framework starting phase.
@@ -25,6 +24,16 @@ class Bootstrap
     {
         Debugger::enable((CHANDLER_ROOT_CONF["debug"] ? Debugger::DEVELOPMENT : Debugger::PRODUCTION), __DIR__ . "/../logs");
         Debugger::getBar()->addPanel(new Chandler\Debug\DatabasePanel);
+    }
+    
+    private function loadConfig(): void
+    {
+        if(!file_exists($conf = CHANDLER_ROOT . "/chandler.yml"))
+            if(!file_exists($conf = CHANDLER_ROOT . "/../chandler.yml"))
+                if(!file_exists($conf = "/etc/chandler.d/chandler.yml"))
+                    exit("Configuration file not found... Have you forgotten to rename it?");
+        
+        define("CHANDLER_ROOT_CONF", chandler_parse_yaml($conf)["chandler"]);
     }
     
     /**
@@ -128,6 +137,7 @@ class Bootstrap
     {
         $this->registerFunctions();
         $this->registerAutoloaders();
+        $this->loadConfig();
         $this->registerDebugger();
         $this->igniteExtensions();
         
