@@ -166,9 +166,10 @@ abstract class SimplePresenter implements IPresenter
         return $_GET[$index] ?? NULL;
     }
     
-    protected function postParam(string $index): ?string
+    protected function postParam(string $index, bool $csrfCheck = true): ?string
     {
-        $this->assertNoCSRF();
+        if($csrfCheck)
+            $this->assertNoCSRF();
         
         return $_POST[$index] ?? NULL;
     }
@@ -184,6 +185,21 @@ abstract class SimplePresenter implements IPresenter
             $GLOBALS["jsonInputCache"] = json_decode($this->queryParam("js") ?? file_get_contents("php://input"), true);
         
         return $GLOBALS["jsonInputCache"][$index] ?? NULL;
+    }
+    
+    protected function findParam(string $index, array $searchIn = ["json", "post", "query"]): ?string
+    {
+        $res = NULL;
+        foreach($searchIn as $search) {
+            if($search === "json")
+                $res = $this->jsonParam($index) ?? $res;
+            else if($search === "post")
+                $res = $this->postParam($index, false) ?? $res;
+            else if($search === "query")
+                $res = $this->queryParam($index) ?? $res;
+        }
+        
+        return $res;
     }
     
     protected function checkbox(string $name): bool
