@@ -5,9 +5,14 @@ use Chandler\Patterns\TSimpleSingleton;
 use Chandler\MVC\Routing\Router;
 use Nette\Utils\Finder;
 
-define("CHANDLER_EXTENSIONS", CHANDLER_ROOT . "/extensions", false);
+define("CHANDLER_EXTENSIONS", CHANDLER_ROOT_CONF["extensions"]["path"] ?? CHANDLER_ROOT . "/extensions", false);
 define("CHANDLER_EXTENSIONS_AVAILABLE", CHANDLER_EXTENSIONS . "/available", false);
-define("CHANDLER_EXTENSIONS_ENABLED", CHANDLER_EXTENSIONS . "/enabled", false);
+
+if(CHANDLER_ROOT_CONF["extensions"]["allEnabled"]) {
+    define("CHANDLER_EXTENSIONS_ENABLED", CHANDLER_EXTENSIONS_AVAILABLE, false);
+} else {
+    define("CHANDLER_EXTENSIONS_ENABLED", CHANDLER_EXTENSIONS . "/enabled", false);
+}
 
 class ExtensionManager
 {
@@ -31,20 +36,22 @@ class ExtensionManager
             $this->extensions[$extensionName] = (object) chandler_parse_yaml($config);
             $this->extensions[$extensionName]->id      = $extensionName;
             $this->extensions[$extensionName]->rawName = $directory;
-            $this->extensions[$extensionName]->enabled = false;
+            $this->extensions[$extensionName]->enabled = CHANDLER_ROOT_CONF["extensions"]["allEnabled"];
         }
         
-        foreach(Finder::find("*")->in(CHANDLER_EXTENSIONS_ENABLED) as $directory) { #findDirectories doesn't work with symlinks
-            if(!is_dir($directory->getRealPath())) continue;
-            
-            $extension = $directory->getFilename();
-            
-            if(!array_key_exists($extension, $this->extensions)) {
-                trigger_error("Extension $extension is enabled, but not available, skipping", E_USER_WARNING);
-                continue;
+        if(!CHANDLER_ROOT_CONF["extensions"]["allEnabled"]) {
+            foreach(Finder::find("*")->in(CHANDLER_EXTENSIONS_ENABLED) as $directory) { #findDirectories doesn't work with symlinks
+                if(!is_dir($directory->getRealPath())) continue;
+                
+                $extension = $directory->getFilename();
+                
+                if(!array_key_exists($extension, $this->extensions)) {
+                    trigger_error("Extension $extension is enabled, but not available, skipping", E_USER_WARNING);
+                    continue;
+                }
+                
+                $this->extensions[$extension]->enabled = true;
             }
-            
-            $this->extensions[$extension]->enabled = true;
         }
         
         if(!array_key_exists(CHANDLER_ROOT_CONF["rootApp"], $this->extensions) || !$this->extensions[CHANDLER_ROOT_CONF["rootApp"]]->enabled) {
@@ -64,14 +71,14 @@ class ExtensionManager
             spl_autoload_register(@create_function("\$class", "
                 if(!substr(\$class, 0, " . iconv_strlen("$name\\") . ") === \"$name\\\\\") return false;
                 
-                include_once CHANDLER_ROOT . \"/extensions/enabled/\" . str_replace(\"\\\\\", \"/\", \$class)  . \".php\";
+                include_once CHANDLER_EXTENSIONS_ENABLED . \"/\" . str_replace(\"\\\\\", \"/\", \$class) . \".php\";
             "));
             
             define(str_replace("-", "_", mb_strtoupper($name)) . "_ROOT", CHANDLER_ROOT . "/extensions/enabled/$name", false);
             define(str_replace("-", "_", mb_strtoupper($name)) . "_ROOT_CONF", chandler_parse_yaml(CHANDLER_ROOT . "/extensions/enabled/$name/$name.yml"), false);
             
             if(isset($configuration->init)) {
-                $init = require(CHANDLER_ROOT . "/extensions/enabled/$name/" . $configuration->init);
+                $init = require(CHANDLER_EXTENSIONS_ENABLED . "/$name/" . $configuration->init);
                 if(is_callable($init))
                     $init();
             }

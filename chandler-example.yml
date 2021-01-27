@@ -8,6 +8,10 @@ chandler:
         adminUrl: "/chandlerd"
         exposeChandler: true
     
+    extensions:
+        path: null
+        allEnabled: false
+    
     database:
         dsn: "mysql:host=localhost;dbname=db"
         user: "root"
