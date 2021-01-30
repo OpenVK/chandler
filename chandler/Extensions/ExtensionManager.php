@@ -74,8 +74,8 @@ class ExtensionManager
                 include_once CHANDLER_EXTENSIONS_ENABLED . \"/\" . str_replace(\"\\\\\", \"/\", \$class) . \".php\";
             "));
             
-            define(str_replace("-", "_", mb_strtoupper($name)) . "_ROOT", CHANDLER_ROOT . "/extensions/enabled/$name", false);
-            define(str_replace("-", "_", mb_strtoupper($name)) . "_ROOT_CONF", chandler_parse_yaml(CHANDLER_ROOT . "/extensions/enabled/$name/$name.yml"), false);
+            define(str_replace("-", "_", mb_strtoupper($name)) . "_ROOT", CHANDLER_EXTENSIONS_ENABLED . "/$name", false);
+            define(str_replace("-", "_", mb_strtoupper($name)) . "_ROOT_CONF", chandler_parse_yaml(CHANDLER_EXTENSIONS_ENABLED . "/$name/$name.yml"), false);
             
             if(isset($configuration->init)) {
                 $init = require(CHANDLER_EXTENSIONS_ENABLED . "/$name/" . $configuration->init);
@@ -118,6 +118,8 @@ class ExtensionManager
     
     function enableExtension(string $name): void
     {
+        if(CHANDLER_ROOT_CONF["extensions"]["allEnabled"]) return;
+        
         if(array_key_exists($name, $this->getExtensions(true))) return;
         
         $path = CHANDLER_EXTENSIONS_AVAILABLE . "/$name";
