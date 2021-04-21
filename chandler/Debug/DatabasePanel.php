@@ -8,10 +8,15 @@ class DatabasePanel implements \Tracy\IBarPanel
     
     public function getTab()
     {
-        $count = sizeof($GLOBALS["dbgSqlQueries"]);
-        $time  = ceil($GLOBALS["dbgSqlTime"] * 1000);
-        $svg   = file_get_contents(__DIR__ . "/templates/db-icon.svg");
-        
+        if(isset($GLOBALS["dbgSqlQueries"])) {
+            $count = sizeof($GLOBALS["dbgSqlQueries"]);
+            $time  = ceil($GLOBALS["dbgSqlTime"] * 1000);
+        } else {
+            $count = "No";
+            $time  = 0;
+        }
+            
+        $svg = file_get_contents(__DIR__ . "/templates/db-icon.svg");
         return <<<EOF
         <span title="DB Queries">
             $svg
@@ -22,6 +27,9 @@ EOF;
     
     public function getPanel()
     {
+        if(!isset($GLOBALS["dbgSqlQueries"]))
+            return "<b>No queries were made...</b>";
+        
         $html = <<<HTML
         <h1>Queries:</h1>
         <div class="tracy-inner">
