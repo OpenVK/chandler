@@ -20,4 +20,5 @@ chandler:
     security:
         secret: ""
         csrfProtection: "permissive"
+        extendedValidation: false
         sessionDuration: 14

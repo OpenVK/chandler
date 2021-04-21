@@ -27,6 +27,7 @@ class Authenticator
                       ->table("ChandlerTokens")
                       ->where($data)
                       ->fetch();
+        
         if(!$token) {
             $this->db->table("ChandlerTokens")->insert($data);
             $token = $this->db->table("ChandlerTokens")->where($data)->fetch();
@@ -68,9 +69,16 @@ class Authenticator
                           "token" => $token,
                       ])
                       ->fetch();
+        
         if(!$token) return null;
         
-        if($token->ip === CONNECTING_IP && $token->ua === $_SERVER["HTTP_USER_AGENT"]) {
+        $checksPassed = false;
+        if(CHANDLER_ROOT_CONF["security"]["extendedValidation"])
+            $checksPassed = $token->ip === CONNECTING_IP && $token->ua === $_SERVER["HTTP_USER_AGENT"];
+        else
+            $checksPassed = true;
+        
+        if($checksPassed) {
             $su   = $this->session->get("_su");
             $user = $this->db->table("ChandlerUsers")->get($su ?? $token->user);
             if(!$user) return null;
