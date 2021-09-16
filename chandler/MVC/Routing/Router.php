@@ -142,8 +142,12 @@ class Router
                                                                                        #TODO: move this to delegateView
             
             $tpl = $this->scope["_template"] ?? "$presenterName/$action.xml";
-            if($tpl[0] !== "/")
-                $tpl = CHANDLER_EXTENSIONS_ENABLED . "/$namespace/Web/Presenters/templates/$tpl";
+            if($tpl[0] !== "/") {
+                $dir = CHANDLER_EXTENSIONS_ENABLED . "/$namespace/Web/Presenters/templates";
+                $tpl = "$dir/$tpl";
+                if(isset($this->scope["_templatePath"]))
+                    $tpl = str_replace($dir, $this->scope["_templatePath"], $tpl);
+            }
             
             $output = $this->delegateView($tpl, $presenter);
             
