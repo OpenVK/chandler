@@ -1,4 +1,5 @@
 <?php
+use Symfony\Component\Yaml\Yaml;
 use Nette\Caching\Storages\FileStorage;
 use Nette\Caching\Cache;
 
@@ -22,7 +23,11 @@ function chandler_parse_yaml(string $filename): array
     
     $result = $cache->load($id);
     if(!$result) {
-        $result = yaml_parse_file($filename);
+        if(function_exists("yaml_parse_file"))
+            $result = yaml_parse_file($filename);
+        else
+            $result = Yaml::parseFile($filename);
+        
         $cache->save($id, $result, [
             Cache::EXPIRE  => "1 day",
             Cache::SLIDING => TRUE,
