@@ -1,7 +1,10 @@
+# Composer
+/vendor/
+/composer.phar
+
 # PhpStorm
 /.idea/
 
-/vendor
 /chandler.yml
 
 /extensions/available/*

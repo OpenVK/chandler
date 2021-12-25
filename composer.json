@@ -1,20 +1,20 @@
 {
+    "description": "TODO: Add a description.",
+    "license": "GPL-3.0-or-later",
+    "minimum-stability": "stable",
+    "name": "openvk/chanlder",
     "require": {
-        "php": "~7.3",
-	
+        "php": "^7.3",
         "nette/utils": "^3.0",
         "nette/di": "^3.0",
         "nette/database": "^3.0",
         "swiftmailer/swiftmailer": "^6.2",
-        "latte/latte": "2.6.2",
+        "latte/latte": "^2.6",
         "nette/safe-stream": "^2.4",
         "nette/tokenizer": "^3.1",
         "firebase/php-jwt": "^5.0",
         "tracy/tracy": "^2.7",
         "symfony/translation": "^5.0",
         "symfony/yaml": "^5.3"
-    },
-    "suggest": {
-        "ext-yaml": "for faster yaml parsing"
     }
 }
