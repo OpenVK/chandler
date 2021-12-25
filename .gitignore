@@ -1,3 +1,6 @@
+# PhpStorm
+/.idea/
+
 /vendor
 /chandler.yml
 
