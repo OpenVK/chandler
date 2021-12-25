@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<phpunit bootstrap="vendor/autoload.php" cacheResultFile="tests/cache/result.txt" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd">
+<phpunit bootstrap="vendor/autoload.php" cacheResultFile="tests/cache/result.json" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd">
     <coverage cacheDirectory="tests/cache" processUncoveredFiles="true">
         <include>
             <file>chandler/Eventing/Events/Event.php</file>

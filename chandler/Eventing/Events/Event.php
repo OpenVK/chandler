@@ -1,37 +1,74 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types = 1);
+
 namespace Chandler\Eventing\Events;
 
+/**
+ * @package Chandler\Eventing\Events
+ */
 class Event
 {
-    protected $data;
+    /**
+     * @var float
+     */
     protected $code;
-    protected $time;
+
+    /**
+     * @var string
+     */
+    protected $data;
+
+    /**
+     * @var bool
+     */
     protected $pristine = true;
-    
-    function __construct($data = "", float $code = 0)
+
+    /**
+     * @var int
+     */
+    protected $time;
+
+    /**
+     * @return float
+     */
+    public function getCode(): float
+    {
+        return $this->code;
+    }
+
+    /**
+     * @return string
+     */
+    public function getData(): string
+    {
+        return $this->data;
+    }
+
+    /**
+     * @return int
+     */
+    public function getTime(): int
+    {
+        return $this->time;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isTainted(): bool
+    {
+        return !$this->pristine;
+    }
+
+    /**
+     * @param string $data
+     * @param float $code
+     */
+    public function __construct(string $data = "", float $code = 0.0)
     {
         $this->data = $data;
         $this->code = $code;
         $this->time = time();
-    }
-    
-    function getData()
-    {
-        return $this->data;
-    }
-    
-    function getCode()
-    {
-        return $this->code;
-    }
-    
-    function getTime()
-    {
-        return $this->time;
-    }
-    
-    function isTainted()
-    {
-        return !$this->pristine;
     }
 }
