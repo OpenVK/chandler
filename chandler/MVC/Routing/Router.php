@@ -141,12 +141,21 @@ class Router
             $this->scope += array_merge_recursive($presenter->getTemplateScope(), []); #TODO: add default parameters
                                                                                        #TODO: move this to delegateView
             
-            $tpl = $this->scope["_template"] ?? "$presenterName/$action.xml";
-            if($tpl[0] !== "/") {
-                $dir = CHANDLER_EXTENSIONS_ENABLED . "/$namespace/Web/Presenters/templates";
-                $tpl = "$dir/$tpl";
-                if(isset($this->scope["_templatePath"]))
-                    $tpl = str_replace($dir, $this->scope["_templatePath"], $tpl);
+            $tpl = "$presenterName/$action.xml";
+            if(!is_null($this->scope["_template"])) {
+                $tplCandidate = $this->scope["_template"];
+                if($tplCandidate[0] !== "/") {
+                    $dir = CHANDLER_EXTENSIONS_ENABLED . "/$namespace/Web/Presenters/templates";
+                    $tplCandidate = "$dir/$tplCandidate";
+                    if(isset($this->scope["_templatePath"]))
+                        $tplCandidate = str_replace($dir, $this->scope["_templatePath"], $tplCandidate);
+                }
+                
+                if(file_exists($tplCandidate)) {
+                    $tpl = $tplCandidate;
+                } else {
+                    trigger_error("Could not open $tplCandidate as template, falling back to $tpl", E_USER_NOTICE);
+                }
             }
             
             $output = $this->delegateView($tpl, $presenter);
