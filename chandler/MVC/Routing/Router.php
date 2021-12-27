@@ -144,7 +144,7 @@ class Router
             $tpl = $this->scope["_template"] ?? "$presenterName/$action.xml";
             if($tpl[0] !== "/") {
                 $dir = CHANDLER_EXTENSIONS_ENABLED . "/$namespace/Web/Presenters/templates";
-                $tpl = "$dir/$tplCandidate";
+                $tpl = "$dir/$tpl";
                 if(isset($this->scope["_templatePath"]))
                     $tpl = str_replace($dir, $this->scope["_templatePath"], $tpl);
             }
