@@ -149,6 +149,11 @@ class Router
                     $tpl = str_replace($dir, $this->scope["_templatePath"], $tpl);
             }
             
+            if(!file_exists($tpl)) {
+                trigger_error("Could not open $tpl as template, falling back.", E_USER_NOTICE);
+                $tpl = "$presenterName/$action.xml";
+            }
+            
             $output = $this->delegateView($tpl, $presenter);
             
             $presenter->onAfterRender();
