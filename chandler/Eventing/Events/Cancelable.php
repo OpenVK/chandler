@@ -9,9 +9,7 @@ namespace Chandler\Eventing\Events;
  */
 interface Cancelable
 {
-    protected $cancelled;
+    public function cancel(): void;
 
-    function cancel(): void;
-
-    function isCancelled(): bool;
+    public function isCancelled(): bool;
 }
