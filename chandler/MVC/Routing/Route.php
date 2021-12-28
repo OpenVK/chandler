@@ -1,11 +1,21 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types = 1);
+
 namespace Chandler\MVC\Routing;
 
+/**
+ * @package Chandler\MVC\Routing
+ */
 class Route
 {
-    public $raw;
-    public $regex;
-    public $namespace;
-    public $presenter;
     public $action;
+
+    public $namespace;
+
+    public $presenter;
+
+    public $raw;
+
+    public $regex;
 }
