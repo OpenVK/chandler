@@ -1,16 +1,30 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types = 1);
+
 namespace Chandler\Patterns;
 
+/**
+ * @package Chandler\Patterns
+ */
 trait TSimpleSingleton
 {
-    private static $self = NULL;
-    
-    private function __construct() {}
-    private function __clone() {}
-    private function __wakeup() {}
-    
-    static function i()
+    /**
+     * @var static
+     */
+    private static $instance;
+
+    /**
+     * @return static
+     */
+    public static function i(): self
     {
-        return static::$self ?? static::$self = new static;
+        if (is_null(static::$instance)) {
+            return static::$instance = new static();
+        } else {
+            return static::$instance;
+        }
     }
+
+    private final function __construct() {}
 }
