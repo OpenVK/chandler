@@ -5,7 +5,7 @@ CREATE TABLE `ChandlerACLGroupsPermissions` (
  `permission` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
  `status` tinyint(1) NOT NULL DEFAULT 1,
  KEY `group` (`group`)
-) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `ChandlerACLPermissionAliases` (
  `alias` varchar(190) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE `ChandlerACLPermissionAliases` (
  `context` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
  `permission` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
  PRIMARY KEY (`alias`)
-) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `ChandlerACLRelations` (
  `user` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE `ChandlerACLRelations` (
  `priority` bigint(20) unsigned NOT NULL DEFAULT 0,
  KEY `user` (`user`),
  KEY `group` (`group`)
-) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `ChandlerACLUsersPermissions` (
  `user` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -30,13 +30,13 @@ CREATE TABLE `ChandlerACLUsersPermissions` (
  `permission` int(10) unsigned NOT NULL,
  `status` tinyint(1) NOT NULL DEFAULT 1,
  KEY `user` (`user`)
-) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `ChandlerGroups` (
  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
  `name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
  `color` mediumint(8) unsigned DEFAULT NULL
-) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `ChandlerTokens` (
  `token` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -45,7 +45,7 @@ CREATE TABLE `ChandlerTokens` (
  `ua` varchar(1000) COLLATE utf8mb4_unicode_ci NOT NULL,
  PRIMARY KEY (`token`),
  KEY `user` (`user`)
-) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `ChandlerUsers` (
  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE `ChandlerUsers` (
  `deleted` tinyint(1) NOT NULL DEFAULT 0,
  PRIMARY KEY (`id`),
  UNIQUE KEY `login` (`login`)
-) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 
