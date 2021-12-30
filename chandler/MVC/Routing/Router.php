@@ -4,7 +4,6 @@ declare(strict_types = 1);
 
 namespace Chandler\MVC\Routing;
 
-use Chandler\Eventing\EventDispatcher;
 use Chandler\MVC\Exceptions\InterruptedException;
 use Chandler\MVC\IPresenter;
 use Chandler\Patterns\TSimpleSingleton;
@@ -199,7 +198,7 @@ class Router
     {
         $key = hash("snefru", CHANDLER_ROOT_CONF["security"]["secret"] . bin2hex($nonce));
         $data = $route->namespace;
-        $data .= Session::i()->get("tok", -1);
+        $data .= Session::getInstance()->get("tok", -1);
         return hash_hmac("snefru", $data, $key) . "#" . bin2hex($nonce);
     }
 
@@ -255,11 +254,6 @@ class Router
             }, $route->raw);
         }
         return null;
-    }
-
-    private function __construct()
-    {
-        $this->events = EventDispatcher::i();
     }
 
     use TSimpleSingleton;

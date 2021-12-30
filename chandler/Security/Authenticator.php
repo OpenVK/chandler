@@ -8,18 +8,18 @@ class Authenticator
 {
     private $db;
     private $session;
-    
+
     private function __construct()
     {
         $this->db      = DatabaseConnection::i()->getContext();
-        $this->session = Session::i();
+        $this->session = Session::getInstance();
     }
-    
+
     private function verifySuRights(string $uId): bool
     {
-        
+
     }
-    
+
     private function makeToken(string $user, string $ip, string $ua): string
     {
         $data  = ["user" => $user, "ip" => $ip, "ua" => $ua];
@@ -27,15 +27,15 @@ class Authenticator
                       ->table("ChandlerTokens")
                       ->where($data)
                       ->fetch();
-        
+
         if(!$token) {
             $this->db->table("ChandlerTokens")->insert($data);
             $token = $this->db->table("ChandlerTokens")->where($data)->fetch();
         }
-        
+
         return $token->token;
     }
-    
+
     static function verifyHash(string $input, string $hash): bool
     {
         try {
@@ -54,46 +54,46 @@ class Authenticator
         } catch(\SodiumException $ex) {
             return false;
         }
-        
+
         return true;
     }
-    
+
     function getUser(): ?User
     {
         $token = $this->session->get("tok");
         if(!$token) return null;
-        
+
         $token = $this->db
                       ->table("ChandlerTokens")
                       ->where([
                           "token" => $token,
                       ])
                       ->fetch();
-        
+
         if(!$token) return null;
-        
+
         $checksPassed = false;
         if(CHANDLER_ROOT_CONF["security"]["extendedValidation"])
             $checksPassed = $token->ip === CONNECTING_IP && $token->ua === $_SERVER["HTTP_USER_AGENT"];
         else
             $checksPassed = true;
-        
+
         if($checksPassed) {
             $su   = $this->session->get("_su");
             $user = $this->db->table("ChandlerUsers")->get($su ?? $token->user);
             if(!$user) return null;
-            
+
             return new User($user, !is_null($su));
         }
-        
+
         return null;
     }
-    
+
     function authenticate(string $user): void
     {
         $this->session->set("tok", $this->makeToken($user, CONNECTING_IP, $_SERVER["HTTP_USER_AGENT"]));
     }
-    
+
     function verifyCredentials(string $id, string $password): bool
     {
         $user = $this->db->table("ChandlerUsers")->get($id);
@@ -101,30 +101,30 @@ class Authenticator
             return false;
         else if(!$this->verifyHash($password, $user->passwordHash))
             return false;
-        
+
         return true;
     }
-    
+
     function login(string $id, string $password): bool
     {
         if(!$this->verifyCredentials($id, $password))
             return false;
-        
+
         $this->authenticate($id);
         return true;
     }
-    
+
     function logout(bool $revoke = false): bool
     {
         $token = $this->session->get("tok");
         if(!$token) return false;
-        
+
         if($revoke) $this->db->table("ChandlerTokens")->where("id", $token)->delete();
-        
+
         $this->session->set("tok", NULL);
-        
+
         return true;
     }
-    
+
     use TSimpleSingleton;
 }

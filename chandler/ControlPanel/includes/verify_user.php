@@ -3,9 +3,9 @@ use Chandler\Security\Authenticator;
 
 return (function(): ?bool
 {
-    $auth = Authenticator::i();
+    $auth = Authenticator::getInstance();
     $user = $auth->getUser();
     if(!$user) return NULL;
-    
+
     return $user->can("access")->model("admin")->whichBelongsTo(NULL);
 });

@@ -17,7 +17,7 @@ trait TSimpleSingleton
     /**
      * @return static
      */
-    public static function i(): self
+    public static function getInstance(): self
     {
         if (is_null(static::$instance)) {
             return static::$instance = new static();

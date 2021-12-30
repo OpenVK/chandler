@@ -3,6 +3,8 @@
     <coverage cacheDirectory="tests/cache" processUncoveredFiles="true">
         <include>
             <file>chandler/Eventing/Events/Event.php</file>
+            <file>chandler/Eventing/EventDispatcher.php</file>
+            <file>chandler/Patterns/TSimpleSingleton.php</file>
         </include>
     </coverage>
     <testsuites>

@@ -42,7 +42,7 @@ class Bootstrap
      */
     private function igniteExtensions(): void
     {
-        Chandler\Extensions\ExtensionManager::i();
+        Chandler\Extensions\ExtensionManager::getInstance();
     }
 
     private function loadConfig(): void
@@ -103,7 +103,7 @@ class Bootstrap
     private function route(string $url): void
     {
         ob_start();
-        $router = Chandler\MVC\Routing\Router::i();
+        $router = Chandler\MVC\Routing\Router::getInstance();
         if (($output = $router->execute($url, null)) !== null)
             echo $output;
         else

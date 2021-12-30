@@ -1,8 +1,11 @@
 {
     "autoload": {
         "classmap": [
-            "chandler/Eventing/Events/Event.php"
-        ]
+            "chandler/Patterns/TSimpleSingleton.php"
+        ],
+        "psr-4": {
+            "Chandler\\": "src"
+        }
     },
     "autoload-dev": {
         "psr-4": {
@@ -14,6 +17,7 @@
     "minimum-stability": "stable",
     "name": "openvk/chanlder",
     "require": {
+        "ext-yaml": "*",
         "php": "^7.3",
         "nette/utils": "^3.0",
         "nette/di": "^3.0",

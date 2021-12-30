@@ -2,6 +2,12 @@
 .gitattributes text eol=lf export-ignore
 .gitignore text eol=lf export-ignore
 
+# PHP
+*.php text eol=lf
+
 # JSON
 *.json text eol=lf
 *.lock text eol=lf
+
+# YAML
+*.yml text eol=lf

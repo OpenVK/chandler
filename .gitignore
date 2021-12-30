@@ -1,3 +1,8 @@
+# Chandler
+/extensions/available/
+/extensions/enabled/
+/chandler.yml
+
 # Composer
 /vendor/
 /composer.phar
@@ -8,13 +13,6 @@
 # PHPUnit
 /tests/cache/
 
-/chandler.yml
-
-/extensions/available/*
-/extensions/enabled/*
-!/extensions/available/.gitkeep
-!/extensions/enabled/.gitkeep
-
 /tmp/cache/di_*
 /tmp/plugin_artifacts/*
 /tmp/cache/database/*
@@ -24,10 +22,6 @@
 !/tmp/cache/database/.gitkeep
 !/tmp/cache/templates/.gitkeep
 !/tmp/cache/yaml/.gitkeep
-
-/htdocs/*
-!/htdocs/.htaccess
-!/htdocs/index.php
 
 /logs/*
 !/logs/.gitkeep
