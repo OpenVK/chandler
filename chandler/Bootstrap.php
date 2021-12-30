@@ -17,24 +17,6 @@ define("CHANDLER_ROOT", dirname(__FILE__) . "/..", false); // IMPROVE: Remove th
 class Bootstrap
 {
     /**
-     * Defines constant CONNECTING_IP, that stores end user's IP address.
-     * Uses X-Forwarded-For if present.
-     *
-     * @return void
-     * @internal
-     */
-    private function defineIP(): void
-    {
-        if (isset($_SERVER["HTTP_X_FORWARDED_FOR"])) {
-            $path = explode(", ", $_SERVER["HTTP_X_FORWARDED_FOR"]);
-            $ip = $path[0];
-        } else {
-            $ip = $_SERVER["REMOTE_ADDR"];
-        }
-        define("CONNECTING_IP", $ip, false);
-    }
-
-    /**
      * Bootstraps extensions.
      *
      * @return void
@@ -139,7 +121,6 @@ class Bootstrap
         $this->igniteExtensions();
         if (!$headless) {
             header("Referrer-Policy: strict-origin-when-cross-origin");
-            $this->defineIP();
             $this->route(function_exists("get_current_url") ? get_current_url() : $_SERVER["REQUEST_URI"]);
         }
     }
