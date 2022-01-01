@@ -2,6 +2,7 @@
 
 declare(strict_types = 1);
 
+use Chandler\MVC\Routing\Router;
 use Tracy\Debugger;
 
 /**
@@ -59,25 +60,13 @@ class Bootstrap
     private function route(string $url): void
     {
         ob_start();
-        $router = Chandler\MVC\Routing\Router::getInstance();
-        if (($output = $router->execute($url, null)) !== null)
+        if (($output = Router::getInstance()->execute($url)) !== null)
             echo $output;
         else
             chandler_http_panic(404, "Not Found", "No routes for $url.");
         ob_flush();
         ob_end_flush();
         flush();
-    }
-
-    /**
-     * Initializes GeoIP, sets DB directory.
-     *
-     * @return void
-     * @internal
-     */
-    private function setupGeoIP(): void
-    {
-        geoip_setup_custom_directory(CHANDLER_ROOT . "/3rdparty/maxmind/");
     }
 
     /**
@@ -89,8 +78,6 @@ class Bootstrap
     function ignite(bool $headless = false): void
     {
         $this->registerFunctions();
-        $this->registerAutoloaders();
-        $this->loadConfig();
         $this->registerDebugger();
         $this->igniteExtensions();
         if (!$headless) {
