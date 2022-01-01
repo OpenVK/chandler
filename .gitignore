@@ -1,6 +1,7 @@
 # Chandler
 /extensions/available/
 /extensions/enabled/
+/logs/
 /chandler.yml
 
 # Composer
@@ -22,6 +23,3 @@
 !/tmp/cache/database/.gitkeep
 !/tmp/cache/templates/.gitkeep
 !/tmp/cache/yaml/.gitkeep
-
-/logs/*
-!/logs/.gitkeep

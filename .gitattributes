@@ -3,12 +3,15 @@
 .gitignore text eol=lf export-ignore
 .gitkeep text eol=lf export-ignore
 
-# PHP
-*.php text eol=lf
+# Markdown
+*.md text eol=lf
 
 # JSON
 *.json text eol=lf
 *.lock text eol=lf
+
+# PHP
+*.php text eol=lf
 
 # YAML
 *.yml text eol=lf
