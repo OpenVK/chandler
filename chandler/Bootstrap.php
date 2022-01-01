@@ -25,18 +25,6 @@ class Bootstrap
     }
 
     /**
-     * Loads procedural APIs.
-     *
-     * @return void
-     * @internal
-     */
-    private function registerFunctions(): void
-    {
-        foreach (glob(CHANDLER_ROOT . "/chandler/procedural/*.php") as $procDef)
-            require $procDef;
-    }
-
-    /**
      * Starts router and serves request.
      *
      * @param string $url Request URL
@@ -61,7 +49,6 @@ class Bootstrap
      */
     public function ignite(): void
     {
-        $this->registerFunctions();
         $this->igniteExtensions();
         header("Referrer-Policy: strict-origin-when-cross-origin");
         $this->route(function_exists("get_current_url") ? get_current_url() : $_SERVER["REQUEST_URI"]);

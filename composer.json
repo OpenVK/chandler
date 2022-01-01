@@ -3,6 +3,13 @@
         "classmap": [
             "chandler/Patterns/TSimpleSingleton.php"
         ],
+        "files": [
+            "chandler/procedural/db_busy.php",
+            "chandler/procedural/escape_url.php",
+            "chandler/procedural/mimes.php",
+            "chandler/procedural/panic.php",
+            "chandler/procedural/yaml.php"
+        ],
         "psr-4": {
             "Chandler\\": "src"
         }
