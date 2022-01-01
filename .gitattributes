@@ -1,6 +1,7 @@
 # Git
 .gitattributes text eol=lf export-ignore
 .gitignore text eol=lf export-ignore
+.gitkeep text eol=lf export-ignore
 
 # PHP
 *.php text eol=lf
