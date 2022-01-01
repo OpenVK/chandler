@@ -3,7 +3,6 @@
 declare(strict_types = 1);
 
 use Chandler\MVC\Routing\Router;
-use Tracy\Debugger;
 
 /**
  * Bootstrap class, that is called during framework starting phase.
@@ -23,18 +22,6 @@ class Bootstrap
     private function igniteExtensions(): void
     {
         Chandler\Extensions\ExtensionManager::getInstance();
-    }
-
-    /**
-     * Starts Tracy debugger session and installs panels.
-     *
-     * @return void
-     * @internal
-     */
-    private function registerDebugger(): void
-    {
-        Debugger::enable((CHANDLER_ROOT_CONF["debug"] ? Debugger::DEVELOPMENT : Debugger::PRODUCTION), __DIR__ . "/../logs");
-        Debugger::getBar()->addPanel(new Chandler\Debug\DatabasePanel);
     }
 
     /**
@@ -72,10 +59,9 @@ class Bootstrap
     /**
      * @return void
      */
-    function ignite(): void
+    public function ignite(): void
     {
         $this->registerFunctions();
-        $this->registerDebugger();
         $this->igniteExtensions();
         header("Referrer-Policy: strict-origin-when-cross-origin");
         $this->route(function_exists("get_current_url") ? get_current_url() : $_SERVER["REQUEST_URI"]);
