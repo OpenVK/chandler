@@ -4,9 +4,6 @@ declare(strict_types = 1);
 
 use Tracy\Debugger;
 
-define("CHANDLER_VER", "0.0.1", false); // IMPROVE: Remove this.
-define("CHANDLER_ROOT", dirname(__FILE__) . "/..", false); // IMPROVE: Remove this.
-
 /**
  * Bootstrap class, that is called during framework starting phase.
  * Initializes everything.
@@ -25,29 +22,6 @@ class Bootstrap
     private function igniteExtensions(): void
     {
         Chandler\Extensions\ExtensionManager::getInstance();
-    }
-
-    private function loadConfig(): void
-    {
-        if (!file_exists($conf = CHANDLER_ROOT . "/chandler.yml"))
-            if (!file_exists($conf = CHANDLER_ROOT . "/../chandler.yml"))
-                if (!file_exists($conf = "/etc/chandler.d/chandler.yml"))
-                    exit("Configuration file not found... Have you forgotten to rename it?");
-        define("CHANDLER_ROOT_CONF", chandler_parse_yaml($conf)["chandler"]);
-    }
-
-    /**
-     * Set ups autoloaders.
-     *
-     * @return void
-     * @internal
-     */
-    private function registerAutoloaders(): void
-    {
-        spl_autoload_register(function ($class): void {
-            if (strpos($class, "Chandler\\") !== 0) return;
-            require_once(str_replace("\\", "/", str_replace("Chandler\\", CHANDLER_ROOT . "/chandler/", $class)) . ".php");
-        }, true, true);
     }
 
     /**

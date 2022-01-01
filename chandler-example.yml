@@ -1,24 +1,23 @@
-chandler:
-    debug: true
-    websiteUrl: null
-    rootApp:    "root"
-    
-    preferences:
-        appendExtension: "xhtml"
-        adminUrl: "/chandlerd"
-        exposeChandler: true
-    
-    extensions:
-        path: null
-        allEnabled: false
-    
-    database:
-        dsn: "mysql:host=localhost;dbname=db"
-        user: "root"
-        password: "root"
-    
-    security:
-        secret: ""
-        csrfProtection: "permissive"
-        extendedValidation: false
-        sessionDuration: 14
+debug: true
+websiteUrl: null
+rootApp:    "root"
+
+preferences:
+    appendExtension: "xhtml"
+    adminUrl: "/chandlerd"
+    exposeChandler: true
+
+extensions:
+    path: null
+    allEnabled: false
+
+database:
+    dsn: "mysql:host=localhost;dbname=db"
+    user: "root"
+    password: "root"
+
+security:
+    secret: ""
+    csrfProtection: "permissive"
+    extendedValidation: false
+    sessionDuration: 14
