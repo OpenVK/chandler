@@ -70,21 +70,14 @@ class Bootstrap
     }
 
     /**
-     * Starts framework.
-     *
      * @return void
-     * @internal
      */
-    function ignite(bool $headless = false): void
+    function ignite(): void
     {
         $this->registerFunctions();
         $this->registerDebugger();
         $this->igniteExtensions();
-        if (!$headless) {
-            header("Referrer-Policy: strict-origin-when-cross-origin");
-            $this->route(function_exists("get_current_url") ? get_current_url() : $_SERVER["REQUEST_URI"]);
-        }
+        header("Referrer-Policy: strict-origin-when-cross-origin");
+        $this->route(function_exists("get_current_url") ? get_current_url() : $_SERVER["REQUEST_URI"]);
     }
 }
-
-return new Bootstrap;
