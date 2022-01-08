@@ -231,7 +231,7 @@ class Router extends Singleton
      */
     public function split(string $route): array // IMPROVE: Make this method private.
     {
-        if (($split  = preg_split("/@/", $route)) === false) {
+        if (($split  = preg_split("/->/", $route)) === false) {
             throw new Exception(); // TODO: Add an exception message.
         } else {
             return $split;
