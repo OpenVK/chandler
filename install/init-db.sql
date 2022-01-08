@@ -2,11 +2,12 @@ CREATE TABLE `ChandlerACLGroupsPermissions`
 (
     `group`      VARCHAR(36) COLLATE "utf8mb4_unicode_ci"   NOT NULL,
     `model`      VARCHAR(1000) COLLATE "utf8mb4_unicode_ci" NOT NULL,
-    `context`    INT(10) unsigned DEFAULT NULL,
+    `context`    INT(10) UNSIGNED                                    DEFAULT NULL,
     `permission` VARCHAR(36) COLLATE "utf8mb4_unicode_ci"   NOT NULL,
-    `status`     tinyint(1) NOT NULL DEFAULT 1,
-    "KEY"        `group` (`group`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `status`     TINYINT(1)                                 NOT NULL DEFAULT 1
+) ENGINE = InnoDB
+  DEFAULT CHARSET = `utf8mb4`
+  COLLATE = `utf8mb4_unicode_ci`;
 
 CREATE TABLE `ChandlerACLPermissionAliases`
 (
@@ -15,33 +16,38 @@ CREATE TABLE `ChandlerACLPermissionAliases`
     `context`    VARCHAR(255) COLLATE "utf8mb4_unicode_ci" NOT NULL,
     `permission` VARCHAR(255) COLLATE "utf8mb4_unicode_ci" NOT NULL,
     PRIMARY KEY (`alias`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE = InnoDB
+  DEFAULT CHARSET = `utf8mb4`
+  COLLATE = `utf8mb4_unicode_ci`;
 
 CREATE TABLE `ChandlerACLRelations`
 (
     `user`     VARCHAR(36) COLLATE "utf8mb4_unicode_ci" NOT NULL,
     `group`    VARCHAR(36) COLLATE "utf8mb4_unicode_ci" NOT NULL,
-    `priority` bigint(20) unsigned NOT NULL DEFAULT 0,
-    "KEY"      `user` (`user`),
-    "KEY"      `group` (`group`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `priority` BIGINT(20) UNSIGNED                      NOT NULL DEFAULT 0
+) ENGINE = InnoDB
+  DEFAULT CHARSET = `utf8mb4`
+  COLLATE = `utf8mb4_unicode_ci`;
 
 CREATE TABLE `ChandlerACLUsersPermissions`
 (
     `user`       VARCHAR(36) COLLATE "utf8mb4_unicode_ci"   NOT NULL,
     `model`      VARCHAR(1000) COLLATE "utf8mb4_unicode_ci" NOT NULL,
-    `context`    INT(10) unsigned NOT NULL,
-    `permission` INT(10) unsigned NOT NULL,
-    `status`     tinyint(1) NOT NULL DEFAULT 1,
-    "KEY"        `user` (`user`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `context`    INT(10) UNSIGNED                           NOT NULL,
+    `permission` INT(10) UNSIGNED                           NOT NULL,
+    `status`     TINYINT(1)                                 NOT NULL DEFAULT 1
+) ENGINE = InnoDB
+  DEFAULT CHARSET = `utf8mb4`
+  COLLATE = `utf8mb4_unicode_ci`;
 
 CREATE TABLE `ChandlerGroups`
 (
     `id`    VARCHAR(36) COLLATE "utf8mb4_unicode_ci"  NOT NULL,
     `name`  VARCHAR(100) COLLATE "utf8mb4_unicode_ci" NOT NULL,
-    `color` mediumint(8) unsigned DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `color` MEDIUMINT(8) UNSIGNED DEFAULT NULL
+) ENGINE = InnoDB
+  DEFAULT CHARSET = `utf8mb4`
+  COLLATE = `utf8mb4_unicode_ci`;
 
 CREATE TABLE `ChandlerTokens`
 (
@@ -49,48 +55,51 @@ CREATE TABLE `ChandlerTokens`
     `user`  VARCHAR(36) COLLATE "utf8mb4_unicode_ci"   NOT NULL,
     `ip`    VARCHAR(255) COLLATE "utf8mb4_unicode_ci"  NOT NULL,
     `ua`    VARCHAR(1000) COLLATE "utf8mb4_unicode_ci" NOT NULL,
-    PRIMARY KEY (`token`),
-    "KEY"   `user` (`user`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    PRIMARY KEY (`token`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = `utf8mb4`
+  COLLATE = `utf8mb4_unicode_ci`;
 
 CREATE TABLE `ChandlerUsers`
 (
     `id`           VARCHAR(36) COLLATE "utf8mb4_unicode_ci"  NOT NULL,
     `login`        VARCHAR(64) COLLATE "utf8mb4_unicode_ci"  NOT NULL,
     `passwordHash` VARCHAR(136) COLLATE "utf8mb4_unicode_ci" NOT NULL,
-    `deleted`      tinyint(1) NOT NULL DEFAULT 0,
+    `deleted`      TINYINT(1)                                NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
     UNIQUE KEY `login` (`login`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE = InnoDB
+  DEFAULT CHARSET = `utf8mb4`
+  COLLATE = `utf8mb4_unicode_ci`;
 
 INSERT INTO `ChandlerGroups`
-VALUES ("c75fe4de-1e62-11ea-904d-42010aac0003", "Users", NULL);
+VALUES ('c75fe4de-1e62-11ea-904d-42010aac0003', 'Users', NULL);
 INSERT INTO `ChandlerGroups`
-VALUES ("594e6cb4-2a3a-11ea-9e1e-42010aac0003", "Administrators", NULL);
+VALUES ('594e6cb4-2a3a-11ea-9e1e-42010aac0003', 'Administrators', NULL);
 
 INSERT INTO `ChandlerACLGroupsPermissions`
-VALUES ("594e6cb4-2a3a-11ea-9e1e-42010aac0003", "admin", NULL, "access", 1);
+VALUES ('594e6cb4-2a3a-11ea-9e1e-42010aac0003', 'admin', NULL, 'access', 1);
 
 INSERT INTO `ChandlerUsers` (`id`, `login`, `passwordHash`, `deleted`)
-VALUES ("ffffffff-ffff-ffff-ffff-ffffffffffff", 'admin@localhost.localdomain6',
+VALUES ('ffffffff-ffff-ffff-ffff-ffffffffffff', 'admin@localhost.localdomain6',
         '9ed792f7235638a1686d69f6d9bc038f$7e315bea792f08e63e38a355980c8070', '0');
 
 INSERT INTO `ChandlerACLRelations`
-VALUES ("ffffffff-ffff-ffff-ffff-ffffffffffff", "594e6cb4-2a3a-11ea-9e1e-42010aac0003", 64);
+VALUES ('ffffffff-ffff-ffff-ffff-ffffffffffff', '594e6cb4-2a3a-11ea-9e1e-42010aac0003', 64);
 INSERT INTO `ChandlerACLRelations`
-VALUES ("ffffffff-ffff-ffff-ffff-ffffffffffff", "c75fe4de-1e62-11ea-904d-42010aac0003", 32);
+VALUES ('ffffffff-ffff-ffff-ffff-ffffffffffff', 'c75fe4de-1e62-11ea-904d-42010aac0003', 32);
 
 CREATE TRIGGER `bfiu_groups`
     BEFORE INSERT
     ON `ChandlerGroups`
-    FOR EACH ROW SET NEW.id = uuid();
+    FOR EACH ROW SET `NEW`.`id` = UUID();
 
 CREATE TRIGGER `bfiu_tokens`
     BEFORE INSERT
     ON `ChandlerTokens`
-    FOR EACH ROW SET NEW.token = uuid();
+    FOR EACH ROW SET `NEW`.`token` = UUID();
 
 CREATE TRIGGER `bfiu_users`
     BEFORE INSERT
     ON `ChandlerUsers`
-    FOR EACH ROW SET NEW.id = uuid();
+    FOR EACH ROW SET `NEW`.`id` = UUID();
