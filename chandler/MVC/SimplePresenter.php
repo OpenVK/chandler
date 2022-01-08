@@ -55,7 +55,7 @@ abstract class SimplePresenter implements IPresenter
             
             echo "<!-- Trying to invoke $input[0] through router from ' . static::class . ' -->";
             
-            $router = \Chandler\MVC\Routing\Router::i();
+            $router = \Chandler\MVC\Routing\Router::getInstance();
             $__out  = $router->execute($router->reverse(...$input), "' . static::class . '");
             echo $__out;
             
