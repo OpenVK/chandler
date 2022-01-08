@@ -4,24 +4,26 @@ declare(strict_types = 1);
 
 namespace Chandler\MVC\Routing;
 
+use Chandler\Classes\Singleton;
 use Chandler\MVC\Exceptions\InterruptedException;
 use Chandler\MVC\IPresenter;
-use Chandler\Patterns\TSimpleSingleton;
 use Chandler\Session\Session;
+use mysql_xdevapi\Exception;
 use Nette\DI;
 use Nette\DI\Config\Adapters\NeonAdapter;
 use Nette\DI\Config\Loader;
 use SodiumException;
 
-class Router
+class Router extends Singleton
 {
     const ALIAS_REGEX = "%{(\??\!?([A-z]++))}%";
 
-    const HANDLER_DELIMITER = "%([#@❤]|\->)%";
-
     private $events;
 
-    private $routes = [];
+    /**
+     * @var array
+     */
+    private array $routes = [];
 
     private $scope = [];
 
@@ -154,7 +156,7 @@ class Router
 
     function delegateStatic(string $namespace, string $path): string
     {
-        $static = $static = $this->statics[$namespace];
+        $static = $this->statics[$namespace];
         if (!isset($static)) return "Fatal error: no route";
         if (!file_exists($file = "$static/$path"))
             return "Fatal error: no resource";
@@ -220,7 +222,30 @@ class Router
         $this->statics[$namespace] = $path;
     }
 
-    function readRoutes(string $filename, string $namespace, bool $autoprefix = true): void
+    /**
+     * TODO: Add a description.
+     *
+     * @param string $route
+     *
+     * @return array
+     */
+    public function split(string $route): array // IMPROVE: Make this method private.
+    {
+        if (($split  = preg_split("/@/", $route)) === false) {
+            throw new Exception(); // TODO: Add an exception message.
+        } else {
+            return $split;
+        }
+    }
+
+    /**
+     * @param string $filename
+     * @param string $namespace
+     * @param bool $autoprefix
+     *
+     * @return void
+     */
+    public function readRoutes(string $filename, string $namespace, bool $autoprefix = true): void
     {
         $config = chandler_parse_yaml($filename);
         if (isset($config["static"]))
@@ -231,7 +256,7 @@ class Router
         foreach ($config["routes"] as $route) {
             $route = (object)$route;
             $placeholders = $route->placeholders ?? [];
-            [$presenter, $action] = preg_split(Router::HANDLER_DELIMITER, $route->handler);
+            [$presenter, $action] = $this->split($route->handler);
             $this->push($autoprefix ? $namespace : null, $route->url, $namespace, $presenter, $action, $placeholders);
         }
     }
@@ -242,7 +267,7 @@ class Router
             [$namespace, $hotlink] = $j;
         else
             $namespace = explode("\\", $this->scope["parentModule"])[0];
-        [$presenter, $action] = preg_split(Router::HANDLER_DELIMITER, $hotlink);
+        [$presenter, $action] = $this->split($hotlink);
         foreach ($this->routes as $route) {
             if ($route->namespace !== $namespace || $route->presenter !== $presenter) continue;
             if (!is_null($action) && $route->action != $action) continue;
@@ -256,5 +281,7 @@ class Router
         return null;
     }
 
-    use TSimpleSingleton;
+    public function __construct()
+    {
+    }
 }

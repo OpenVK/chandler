@@ -1,7 +1,8 @@
 {
     "autoload": {
         "classmap": [
-            "chandler/Patterns/TSimpleSingleton.php"
+            "chandler",
+            "extensions"
         ],
         "files": [
             "chandler/procedural/db_busy.php",
@@ -25,7 +26,7 @@
     "name": "openvk/chanlder",
     "require": {
         "ext-yaml": "*",
-        "php": "^7.3",
+        "php": "^7.4",
         "nette/utils": "^3.0",
         "nette/di": "^3.0",
         "nette/database": "^3.0",
@@ -37,8 +38,7 @@
         "symfony/translation": "^5.0",
         "symfony/yaml": "^5.3",
         "guzzlehttp/guzzle": "^6.0",
-        "wildbit/postmark-php": "^4.0",
-        "tracy/tracy": "2.9"
+        "wildbit/postmark-php": "^4.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.5"

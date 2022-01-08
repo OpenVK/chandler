@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 namespace Chandler\Extensions;
-use Chandler\Patterns\TSimpleSingleton;
+use Chandler\Classes\Singleton;
 use Chandler\MVC\Routing\Router;
 use Nette\Utils\Finder;
 
@@ -13,14 +13,14 @@ if(CHANDLER_ROOT_CONF["extensions"]["allEnabled"]) {
     define("CHANDLER_EXTENSIONS_ENABLED", CHANDLER_EXTENSIONS . "/enabled", false);
 }
 
-class ExtensionManager
+class ExtensionManager extends Singleton
 {
     private $extensions = [];
     private $router     = NULL;
     private $rootApp    = NULL;
     private $eventLoop  = NULL;
 
-    private function __construct()
+    protected function __construct()
     {
         foreach(Finder::findDirectories("*")->in(CHANDLER_EXTENSIONS_AVAILABLE) as $directory) {
             $extensionName = $directory->getFilename();
@@ -125,6 +125,4 @@ class ExtensionManager
 
         if(!symlink($path, str_replace("available", "enabled", $path))) throw new \Exception("Could not enable extension");
     }
-
-    use TSimpleSingleton;
 }

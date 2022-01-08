@@ -2,9 +2,7 @@
 <phpunit bootstrap="vendor/autoload.php" cacheResultFile="tests/cache/result.json" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd">
     <coverage cacheDirectory="tests/cache" processUncoveredFiles="true">
         <include>
-            <file>chandler/Eventing/Events/Event.php</file>
-            <file>chandler/Eventing/EventDispatcher.php</file>
-            <file>chandler/Patterns/TSimpleSingleton.php</file>
+            <directory>src</directory>
         </include>
     </coverage>
     <testsuites>
