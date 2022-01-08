@@ -8,8 +8,9 @@ preferences:
     exposeChandler: true
 
 extensions:
-    path: null
     allEnabled: false
+    available: "/extensions/available"
+    enabled: "/extensions/enabled"
 
 database:
     dsn: "mysql:host=localhost;dbname=db"

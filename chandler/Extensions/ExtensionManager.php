@@ -4,21 +4,14 @@ use Chandler\Classes\Singleton;
 use Chandler\MVC\Routing\Router;
 use Nette\Utils\Finder;
 
-define("CHANDLER_EXTENSIONS", CHANDLER_ROOT_CONF["extensions"]["path"] ?? CHANDLER_ROOT . "/extensions", false);
-define("CHANDLER_EXTENSIONS_AVAILABLE", CHANDLER_EXTENSIONS . "/available", false);
-
-if(CHANDLER_ROOT_CONF["extensions"]["allEnabled"]) {
-    define("CHANDLER_EXTENSIONS_ENABLED", CHANDLER_EXTENSIONS_AVAILABLE, false);
-} else {
-    define("CHANDLER_EXTENSIONS_ENABLED", CHANDLER_EXTENSIONS . "/enabled", false);
-}
-
+/**
+ * @package Chandler\Extensions
+ */
 class ExtensionManager extends Singleton
 {
     private $extensions = [];
-    private $router     = NULL;
-    private $rootApp    = NULL;
-    private $eventLoop  = NULL;
+    private $router;
+    private $rootApp;
 
     protected function __construct()
     {
@@ -66,11 +59,6 @@ class ExtensionManager extends Singleton
     private function init(): void
     {
         foreach($this->getExtensions(true) as $name => $configuration) {
-            spl_autoload_register(@create_function("\$class", "
-                if(!substr(\$class, 0, " . iconv_strlen("$name\\") . ") === \"$name\\\\\") return false;
-                
-                include_once CHANDLER_EXTENSIONS_ENABLED . \"/\" . str_replace(\"\\\\\", \"/\", \$class) . \".php\";
-            "));
 
             define(str_replace("-", "_", mb_strtoupper($name)) . "_ROOT", CHANDLER_EXTENSIONS_ENABLED . "/$name", false);
             define(str_replace("-", "_", mb_strtoupper($name)) . "_ROOT_CONF", chandler_parse_yaml(CHANDLER_EXTENSIONS_ENABLED . "/$name/$name.yml"), false);
@@ -79,15 +67,6 @@ class ExtensionManager extends Singleton
                 $init = require(CHANDLER_EXTENSIONS_ENABLED . "/$name/" . $configuration->init);
                 if(is_callable($init))
                     $init();
-            }
-
-            if(is_dir($hooks = CHANDLER_EXTENSIONS_ENABLED . "/$name/Hooks")) {
-                foreach(Finder::findFiles("*Hook.php")->in($hooks) as $hookFile) {
-                    $hookClassName = "$name\\Hooks\\" . str_replace(".php", "", end(explode("/", $hookFile)));
-                    $hook          = new $hookClassName;
-
-                    $this->eventLoop->addListener($hook);
-                }
             }
 
             if(is_dir($app = CHANDLER_EXTENSIONS_ENABLED . "/$name/Web")) #"app" means "web app", thus variable is called $app
@@ -105,24 +84,5 @@ class ExtensionManager extends Singleton
     function getExtension(string $name): ?object
     {
         return @$this->extensions[$name];
-    }
-
-    function disableExtension(string $name): void
-    {
-        if(!array_key_exists($name, $this->getExtensions(true))) return;
-
-        if(!unlink(CHANDLER_EXTENSIONS_ENABLED . "/$name")) throw new \Exception("Could not disable extension");
-    }
-
-    function enableExtension(string $name): void
-    {
-        if(CHANDLER_ROOT_CONF["extensions"]["allEnabled"]) return;
-
-        if(array_key_exists($name, $this->getExtensions(true))) return;
-
-        $path = CHANDLER_EXTENSIONS_AVAILABLE . "/$name";
-        if(!is_dir($path)) throw new \Exception("Extension doesn't exist");
-
-        if(!symlink($path, str_replace("available", "enabled", $path))) throw new \Exception("Could not enable extension");
     }
 }

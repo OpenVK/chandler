@@ -51,6 +51,6 @@ class Bootstrap
     {
         $this->igniteExtensions();
         header("Referrer-Policy: strict-origin-when-cross-origin");
-        $this->route(function_exists("get_current_url") ? get_current_url() : $_SERVER["REQUEST_URI"]);
+        $this->route($_SERVER["REQUEST_URI"]);
     }
 }
