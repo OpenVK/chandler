@@ -1,6 +1,6 @@
 debug: true
 websiteUrl: null
-rootApp:    "root"
+rootApp: "root"
 
 preferences:
     appendExtension: "xhtml"
