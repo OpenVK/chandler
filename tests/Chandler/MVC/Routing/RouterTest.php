@@ -20,7 +20,7 @@ class RouterTest extends TestCase
         return [
             [
                 "expected" => ["Index", "index"],
-                "givenRoute" => "Index@index",
+                "givenRoute" => "Index->index",
             ],
         ];
     }
