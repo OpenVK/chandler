@@ -94,9 +94,9 @@ abstract class DBEntity
         if(is_null($this->record)) {
             $this->record = $this->getTable()->insert($this->changes);
         } else if($this->deleted) {
-            $this->record = $this->getTable()->insert((array) $this-->record);
+            $this->record = $this->getTable()->insert((array) $this->record);
         } else {
-            $this->record->getTable()->where("id", $this->record->id)->update($this->changes);
+            $this->getTable()->get($this->record->id)->update($this->changes);
             $this->record = $this->getTable()->get($this->record->id);
         }
         
