@@ -68,11 +68,12 @@ class ExtensionManager
     private function init(): void
     {
         foreach($this->getExtensions(true) as $name => $configuration) {
-            spl_autoload_register(@create_function("\$class", "
-                if(!substr(\$class, 0, " . iconv_strlen("$name\\") . ") === \"$name\\\\\") return false;
+            spl_autoload_register(function($class) use ($name) {
+                if(substr($class, 0, strlen("$name\\")) !== "$name\\")
+                    return false;
                 
-                include_once CHANDLER_EXTENSIONS_ENABLED . \"/\" . str_replace(\"\\\\\", \"/\", \$class) . \".php\";
-            "));
+                include_once CHANDLER_EXTENSIONS_ENABLED . "/" . str_replace("\\", "/", $class) . ".php";
+            });
             
             define(str_replace("-", "_", mb_strtoupper($name)) . "_ROOT", CHANDLER_EXTENSIONS_ENABLED . "/$name", false);
             define(str_replace("-", "_", mb_strtoupper($name)) . "_ROOT_CONF", chandler_parse_yaml(CHANDLER_EXTENSIONS_ENABLED . "/$name/$name.yml"), false);
