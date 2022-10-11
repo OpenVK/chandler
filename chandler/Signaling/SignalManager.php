@@ -64,10 +64,10 @@ class SignalManager
      * @uses \Chandler\Signaling\SignalManager::eventFor
      * @return void
      */
-    function listen(\Closure $callback, int $for): void
+    function listen(\Closure $callback, int $for, int $time = 25): void
     {
         $this->since = time() - 1;
-        for($i = 0; $i < 25; $i++) {
+        for($i = 0; $i < $time; $i++) {
             sleep(1);
             
             $event = $this->eventFor($for);
