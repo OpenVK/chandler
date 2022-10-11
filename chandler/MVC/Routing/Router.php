@@ -153,7 +153,8 @@ class Router
                 trigger_error("Could not open $tpl as template, falling back.", E_USER_NOTICE);
                 $tpl = CHANDLER_EXTENSIONS_ENABLED . "/$namespace/Web/Presenters/templates/$presenterName/$action.xml";
             }
-            
+
+            //if(str_contains($presenterName, "Poll")) return json_encode($this->scope);
             $output = $this->delegateView($tpl, $presenter);
             
             $presenter->onAfterRender();
@@ -275,7 +276,8 @@ class Router
     
     function execute(string $url, ?string $parentModule = null): ?string
     {
-        $this->url = chandler_escape_url(parse_url($url, PHP_URL_PATH));
+        $this->scope = [];
+        $this->url   = chandler_escape_url(parse_url($url, PHP_URL_PATH));
         
         if(!is_null($parentModule)) {
             $GLOBALS["parentModule"]     = $parentModule;
