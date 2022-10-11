@@ -44,7 +44,7 @@ class User
      * @param string $password password
      * @return string hash
      */
-    private function makeHash(string $password): string
+    private static function makeHash(string $password): string
     {
         $salt = openssl_random_pseudo_bytes(SODIUM_CRYPTO_PWHASH_SALTBYTES);
         $hash = sodium_crypto_pwhash(
