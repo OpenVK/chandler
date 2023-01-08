@@ -193,6 +193,7 @@ class Router
         
         header("Content-Type: " . system_extension_mime_type($file) ?? "text/plain; charset=unknown-8bit");
         header("Content-Size: " . filesize($file));
+        header("Cache-Control: public, must-understand, immutable, max-age=628000000");
         header("ETag: $hash");
         
         readfile($file);
