@@ -2,10 +2,8 @@
 namespace Chandler\Database;
 use Chandler\Database\DatabaseConnection;
 use Chandler\Security\User;
-use openvk\Web\Models\RowModel;
-use openvk\Web\Util\DateTime;
 
-class Log extends RowModel
+class Log extends DBEntity
 {
     protected $tableName = "ChandlerLogs";
 
@@ -104,9 +102,9 @@ class Log extends RowModel
         return (array) json_decode($this->getRecord()->xdiff_new, true, JSON_UNESCAPED_UNICODE) ?? null;
     }
 
-    function getTime(): DateTime
+    function getTime(): int
     {
-        return new DateTime($this->getRecord()->ts);
+        return $this->getRecord()->ts;
     }
 
     function diff($old, $new): array

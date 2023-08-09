@@ -8,7 +8,6 @@ use Chandler\Security\User;
 use Nette\Database\Table\Selection;
 use Nette\Database\Table\ActiveRow;
 use Nette\InvalidStateException as ISE;
-use openvk\Web\Models\Repositories\CurrentUser;
 use Chandler\Database\Logs;
 
 
