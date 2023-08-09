@@ -7,6 +7,9 @@ chandler:
         appendExtension: "xhtml"
         adminUrl: "/chandlerd"
         exposeChandler: true
+        logs:
+            enabled: true
+            entitiesNamespace: "openvk\\Web\\Models\\Entities\\"
     
     extensions:
         path: null
