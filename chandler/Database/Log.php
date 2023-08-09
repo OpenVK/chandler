@@ -50,16 +50,12 @@ class Log extends DBEntity
 
     function getObjectType(): string
     {
-        return [
-            "albums" => "Альбом",
-            "groups" => "Сообщество",
-            "profiles" => "Профиль",
-            "comments" => "Комментарий",
-            "ip" => "IP-адрес",
-            "posts" => "Запись",
-            "tickets" => "Вопрос",
-            "tickets_comments" => "Комментарий к тикету",
-        ][$this->getRecord()->object_table] ?? $this->getRecord()->object_model;
+        $type = tr("log_" . $this->getObjectTable());
+        if ($type === "@log_" . $this->getObjectTable()) {
+            return str_replace(CHANDLER_ROOT_CONF["preferences"]["logs"]["entitiesNamespace"], "", $this->getRecord()->object_model);
+        } else {
+            return $type;
+        }
     }
 
     function getObjectName(): string
