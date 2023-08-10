@@ -40,12 +40,12 @@ class Log extends DBEntity
 
     function getType(): string
     {
-        return ["добавил", "отредактировал", "удалил", "восстановил"][$this->getTypeRaw()];
+        return [tr("logs_added"), tr("logs_edited"), tr("logs_removed"), tr("logs_restored")][$this->getTypeRaw()];
     }
 
     function getTypeNom(): string
     {
-        return ["Создание", "Редактирование", "Удаление", "Восстановление"][$this->getTypeRaw()];
+        return [tr("logs_adding"), tr("logs_editing"), tr("logs_removing"), tr("logs_restoring")][$this->getTypeRaw()];
     }
 
     function getObjectType(): string
