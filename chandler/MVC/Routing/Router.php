@@ -278,7 +278,7 @@ class Router
     function execute(string $url, ?string $parentModule = null): ?string
     {
         $this->scope = [];
-        $this->url   = chandler_escape_url(parse_url($url, PHP_URL_PATH));
+        $this->url   = chandler_escape_url((string) parse_url(preg_replace("%/+%", "/", $url), PHP_URL_PATH));
         
         if(!is_null($parentModule)) {
             $GLOBALS["parentModule"]     = $parentModule;
