@@ -56,7 +56,25 @@ CREATE TABLE `ChandlerUsers` (
  UNIQUE KEY `login` (`login`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE `ChandlerLogs` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `user` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `type` int(11) NOT NULL,
+  `object_table` tinytext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `object_model` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `object_id` bigint(20) UNSIGNED NOT NULL,
+  `xdiff_old` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `xdiff_new` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `ts` bigint(20) NOT NULL,
+  `ip` tinytext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `useragent` longtext COLLATE utf8mb4_unicode_ci NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+ALTER TABLE `ChandlerLogs`
+  ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `ChandlerLogs`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 
 INSERT INTO `ChandlerGroups` VALUES ("c75fe4de-1e62-11ea-904d-42010aac0003", "Users", NULL);

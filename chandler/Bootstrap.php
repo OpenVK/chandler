@@ -141,6 +141,7 @@ class Bootstrap
         $this->registerDebugger();
         $this->igniteExtensions();
         
+        \Chandler\Database\CurrentUser::get($_SERVER["REMOTE_ADDR"], $_SERVER["HTTP_USER_AGENT"]);
         if(!$headless) {
             header("Referrer-Policy: strict-origin-when-cross-origin");
             $this->defineIP();
