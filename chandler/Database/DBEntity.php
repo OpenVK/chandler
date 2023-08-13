@@ -100,7 +100,7 @@ abstract class DBEntity
         $this->getTable()->where("id", $this->record->id)->update(["deleted" => false]);
     }
 
-    function save(?bool $log = true): void
+    function save(?bool $log = false): void
     {
         if ($log) {
             $user_id = Authenticator::i()->getUser()->getId();
