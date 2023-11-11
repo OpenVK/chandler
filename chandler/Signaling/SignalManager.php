@@ -74,7 +74,7 @@ class SignalManager
             if(!$event) continue;
             
             list($id, $evt) = $event;
-            $id = crc32($id);
+            $id = crc32((string)$id);
             $callback($evt, $id);
         }
         
