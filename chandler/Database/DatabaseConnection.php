@@ -35,7 +35,7 @@ class DatabaseConnection
     }
     
     private function __clone() {}
-    private function __wakeup() {}
+    public function __wakeup() {}
     
     protected function getQueryCallback(): array
     {
