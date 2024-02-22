@@ -9,7 +9,7 @@
         "latte/latte": "2.10.10",
         "nette/safe-stream": "^2.4",
         "nette/tokenizer": "^3.1",
-        "firebase/php-jwt": "^5.0",
+        "firebase/php-jwt": "^6.0",
         "symfony/translation": "^5.0",
         "symfony/yaml": "^5.3",
         "guzzlehttp/guzzle": "^6.0",
