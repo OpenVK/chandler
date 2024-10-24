@@ -6,7 +6,7 @@
         "nette/di": "^3.0",
         "nette/database": "^3.0",
         "swiftmailer/swiftmailer": "^6.2",
-        "latte/latte": "2.10.10",
+        "latte/latte": "^2.10",
         "nette/safe-stream": "^2.4",
         "nette/tokenizer": "^3.1",
         "firebase/php-jwt": "^5.0",
@@ -14,7 +14,7 @@
         "symfony/yaml": "^5.3",
         "guzzlehttp/guzzle": "^6.0",
         "wildbit/postmark-php": "^4.0",
-        "tracy/tracy": "2.10"
+        "tracy/tracy": "^2.10"
     },
     "suggest": {
         "ext-yaml": "for faster yaml parsing"
