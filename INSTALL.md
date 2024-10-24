@@ -2,7 +2,7 @@ You will need the following software for the installation:
 * Apache Web Server (2.4 or later) or NGINX
 * Composer (for setup)
 * `ln` program (for setup, comes with GNU Coreutils)
-* PHP (8.0 or later)
+* PHP (8.1 or later)
 * YAML extension
 * Percona Server or MySQL 8+ (with legacy auth mechanism)
 
