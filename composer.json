@@ -14,7 +14,8 @@
         "symfony/yaml": "^5.3",
         "guzzlehttp/guzzle": "^6.0",
         "wildbit/postmark-php": "^4.0",
-        "tracy/tracy": "^2.10"
+        "tracy/tracy": "^2.10",
+        "predis/predis": "^3.2"
     },
     "suggest": {
         "ext-yaml": "for faster yaml parsing"

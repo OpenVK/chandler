@@ -1,12 +1,14 @@
 <?php declare(strict_types=1);
 namespace Chandler\Signaling;
 use Chandler\Patterns\TSimpleSingleton;
+use Predis\Client as RedisClient;
 
 /**
  * Signal manager (singleton).
  * Signals are events, that are meant to be recieved by end user.
  * 
  * @author kurotsun <celestine@vriska.ru>
+ * @author Vladimir Barinov <veselcraft@icloud.com>
  */
 class SignalManager
 {
@@ -43,7 +45,7 @@ class SignalManager
      * @return array|null Array of events if there are any, null otherwise
      */
     private function eventFor(int $for): ?array
-    {
+    {        
         $since     = $this->since - 1;
         $statement = $this->connection->query("SELECT * FROM pool WHERE `for` = $for AND `since` > $since ORDER BY since DESC");
         $event     = $statement->fetch(\PDO::FETCH_LAZY);
@@ -66,8 +68,41 @@ class SignalManager
      */
     function listen(\Closure $callback, int $for, int $time = 25): void
     {
+        try {
+            $redisClient = new RedisClient(CHANDLER_ROOT_CONF["redisUrl"], ['read_write_timeout' => $time]);
+
+            // We will catch the old message first
+            $oldEvent = $this->eventFor($for);
+            
+            if ($oldEvent) {
+                list($id, $evt) = $oldEvent;
+                $id = crc32((string)$id);
+                $callback($evt, $id);
+            }
+
+            // And then we will subscribe to user's channel
+            $subscriber = $redisClient->pubSubLoop();
+            $subscriber->subscribe('im'.$for);
+
+            foreach($subscriber as $event) {
+                if ($event->kind == 'message' && $event->channel == 'im'.$for) {
+                    list($id, $evt) = json_decode($event->payload);
+                    $id = crc32((string)$id);
+                    $evt = unserialize(hex2bin($evt));
+                    $callback($evt, $id);
+                }
+            }
+
+            // On timeout we're returning nothing
+            exit("[]");
+        } 
+        catch (Exception $e) 
+        {
+            error_log("Couldn't connect to Redis server, fallback to old sqlite method. Exception Message: ".$e->getMessage());
+        }
+
         $this->since = time() - 1;
-        for($i = 0; $i < $time; $i++) {
+        for($i = 0; $i < ($time / 5); $i++) {
             sleep(1);
             
             $event = $this->eventFor($for);
@@ -131,7 +166,16 @@ class SignalManager
         $event = bin2hex(serialize($event));
         $since = time();
         
+        // add it to the history
         $this->connection->query("INSERT INTO pool VALUES (NULL, $since, $for, '$event')");
+        $id = $this->connection->lastInsertId();
+
+        try {
+            $redisClient = new RedisClient(CHANDLER_ROOT_CONF["redisUrl"]);
+            $redisClient->publish('im'.$for, json_encode([$id, $event]));
+        } catch (Exception $e) {
+            error_log("Couldn't connect to Redis server and push the event. Exception Message: ".$e->getMessage());
+        }
         return true;
     }
     

@@ -33,3 +33,5 @@ chandler:
         pass: "word"
         addr: "noreply@example.com"
         ssl: true
+
+    redisUrl: "tcp://10.0.0.1:6379"
