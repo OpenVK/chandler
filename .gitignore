@@ -6,6 +6,7 @@
 !/extensions/available/.gitkeep
 !/extensions/enabled/.gitkeep
 
+/tmp/events.bin
 /tmp/cache/di_*
 /tmp/plugin_artifacts/*
 /tmp/cache/database/*
