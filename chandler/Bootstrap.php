@@ -141,10 +141,10 @@ class Bootstrap
         $this->registerDebugger();
         $this->igniteExtensions();
         
-        \Chandler\Database\CurrentUser::get($_SERVER["REMOTE_ADDR"], $_SERVER["HTTP_USER_AGENT"]);
         if(!$headless) {
             header("Referrer-Policy: strict-origin-when-cross-origin");
             $this->defineIP();
+            \Chandler\Database\CurrentUser::get(CONNECTING_IP, $_SERVER["HTTP_USER_AGENT"]);
             $this->route(function_exists("get_current_url") ? get_current_url() : $_SERVER["REQUEST_URI"]);
         }
     }
