@@ -2,6 +2,7 @@
 namespace Chandler\Session;
 use Chandler\Patterns\TSimpleSingleton;
 use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 
 /**
  * Session singleton.
@@ -93,7 +94,7 @@ class Session
     private function bootstrapData(): void
     {
         try {
-            $this->data = (array) JWT::decode($_COOKIE["CHANDLERSESS"], ($this->key), ["HS512"]);
+            $this->data = (array) JWT::decode($_COOKIE["CHANDLERSESS"], new Key($this->key, "HS512"));
         } catch(\Exception $ex) {
             $this->initSession();
         }
