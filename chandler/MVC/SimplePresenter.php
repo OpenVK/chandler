@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Chandler\MVC;
 
-use Chandler\Session\Session;
+use Chandler\MVC\Latte\ChandlerExtension;
 use Latte\Engine as TemplatingEngine;
 use Nette\SmartObject;
 
@@ -28,47 +28,11 @@ abstract class SimplePresenter implements IPresenter
     public function getTemplatingEngine(): TemplatingEngine
     {
         $latte = new TemplatingEngine();
-        $macros = new \Latte\Macros\MacroSet($latte->getCompiler());
-        $latte->setTempDirectory(CHANDLER_ROOT . "/tmp/cache/templates");
 
-        $macros->addMacro("css", '
-            $domain   = "' . explode("\\", static::class)[0] . '";
-            $file     = (%node.array)[0];
-            $realpath = CHANDLER_EXTENSIONS_ENABLED . "/$domain/Web/static/$file";
-            if(file_exists($realpath)) {
-                $hash = "sha384-" . base64_encode(hash_file("sha384", $realpath, true));
-                $mod  = base_convert((string) (filemtime($realpath)), 10, 32);
-                echo "<link rel=\'stylesheet\' href=\'/assets/packages/static/$domain/$file?mod=$mod\' integrity=\'$hash\' crossorigin=\'anonymous\' />";
-            } else {
-                echo "<!-- ERR: $file does not exist. Not including. -->";
-            }
-        ');
-        $macros->addMacro("script", '
-            $domain   = "' . explode("\\", static::class)[0] . '";
-            $file     = (%node.array)[0];
-            $realpath = CHANDLER_EXTENSIONS_ENABLED . "/$domain/Web/static/$file";
-            if(file_exists($realpath)) {
-                $hash = "sha384-" . base64_encode(hash_file("sha384", $realpath, true));
-                $mod  = base_convert((string) (filemtime($realpath)), 10, 32);
-                echo "<script src=\'/assets/packages/static/$domain/$file?mod=$mod\' integrity=\'$hash\' crossorigin=\'anonymous\' ></script>";
-            } else {
-                echo "<!-- ERR: $file does not exist. Not including. -->";
-            }
-        ');
-        $macros->addMacro(
-            "presenter",
-            '
-            $input  = (%node.array);
-            
-            echo "<!-- Trying to invoke $input[0] through router from ' . static::class . ' -->";
-            
-            $router = \Chandler\MVC\Routing\Router::i();
-            $__out  = $router->execute($router->reverse(...$input), "' . static::class . '");
-            echo $__out;
-            
-            echo "<!-- Inclusion complete -->";
-            '
-        );
+        $latte->setTempDirectory(CHANDLER_ROOT . "/tmp/cache/templates");
+        $latte->addExtension(new \Latte\Essential\RawPhpExtension());
+
+        $latte->addExtension(new ChandlerExtension(static::class));
 
         return $latte;
     }
