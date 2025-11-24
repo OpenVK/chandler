@@ -1,5 +1,9 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Chandler\Database;
+
 use Chandler\Database\DatabaseConnection;
 use Nette\Database\Table\ActiveRow;
 use Chandler\Database\Log;
@@ -10,7 +14,7 @@ class Logs
     private $context;
     private $logs;
 
-    function __construct()
+    public function __construct()
     {
         $this->context = DatabaseConnection::i()->getContext();
         $this->logs  = $this->context->table("ChandlerLogs");
@@ -18,15 +22,15 @@ class Logs
 
     private function toLog(?ActiveRow $ar): ?Log
     {
-        return is_null($ar) ? NULL : new Log($ar);
+        return is_null($ar) ? null : new Log($ar);
     }
 
-    function get(int $id): ?Log
+    public function get(int $id): ?Log
     {
         return $this->toLog($this->logs->get($id));
     }
 
-    function create(string $user, string $table, string $model, int $type, $object, $changes, ?string $ip = NULL, ?string $useragent = NULL): void
+    public function create(string $user, string $table, string $model, int $type, $object, $changes, ?string $ip = null, ?string $useragent = null): void
     {
         if ($model !== "Chandler\Database\Log") {
             $fobject = (is_array($object) ? $object : $object->unwrap());
@@ -39,22 +43,28 @@ class Logs
                 }
 
                 foreach (array_diff_assoc($nobject, $changes) as $field => $value) {
-                    if (str_starts_with($field, "rate_limit")) continue;
-                    if ($field === "online") continue;
-                    $_changes[$field] = xdiff_string_diff((string)$nobject[$field], (string)$changes[$field]);
+                    if (str_starts_with($field, "rate_limit")) {
+                        continue;
+                    }
+                    if ($field === "online") {
+                        continue;
+                    }
+                    $_changes[$field] = xdiff_string_diff((string) $nobject[$field], (string) $changes[$field]);
                 }
 
-                if (count($_changes) === 0) return;
-            } else if ($type === 0) { // if new
+                if (count($_changes) === 0) {
+                    return;
+                }
+            } elseif ($type === 0) { // if new
                 $nobject = $fobject;
                 foreach ($fobject as $field => $value) {
-                    $_changes[$field] = xdiff_string_diff("", (string)$value);
+                    $_changes[$field] = xdiff_string_diff("", (string) $value);
                 }
-            } else if ($type === 2 || $type === 3) { // if deleting or restoring
-                $_changes["deleted"] = (int)($type === 2);
+            } elseif ($type === 2 || $type === 3) { // if deleting or restoring
+                $_changes["deleted"] = (int) ($type === 2);
             }
 
-            $log = new Log;
+            $log = new Log();
             $log->setUser($user);
             $log->setType($type);
             $log->setObject_Table($table);
@@ -69,17 +79,19 @@ class Logs
         }
     }
 
-    function search($filter): \Traversable
+    public function search($filter): \Traversable
     {
-        foreach ($this->logs->where($filter)->order("id DESC") as $log)
+        foreach ($this->logs->where($filter)->order("id DESC") as $log) {
             yield new Log($log);
+        }
     }
 
-    function getTypes(): array
+    public function getTypes(): array
     {
         $types = [];
-        foreach ($this->context->query("SELECT DISTINCT(`object_model`) AS `object_model` FROM `ChandlerLogs`")->fetchAll() as $type)
+        foreach ($this->context->query("SELECT DISTINCT(`object_model`) AS `object_model` FROM `ChandlerLogs`")->fetchAll() as $type) {
             $types[] = str_replace(CHANDLER_ROOT_CONF["preferences"]["logs"]["entitiesNamespace"], "", $type->object_model);
+        }
 
         return $types;
     }

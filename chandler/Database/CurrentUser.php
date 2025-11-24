@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Chandler\Database;
 
@@ -8,18 +10,22 @@ class CurrentUser
     private $ip;
     private $useragent;
 
-    public function __construct(?string $ip = NULL, ?string $useragent = NULL)
+    public function __construct(?string $ip = null, ?string $useragent = null)
     {
-        if ($ip)
+        if ($ip) {
             $this->ip = $ip;
+        }
 
-        if ($useragent)
+        if ($useragent) {
             $this->useragent = $useragent;
+        }
     }
 
     public static function get($ip, $useragent)
     {
-        if (self::$instance === null) self::$instance = new self($ip, $useragent);
+        if (self::$instance === null) {
+            self::$instance = new self($ip, $useragent);
+        }
         return self::$instance;
     }
 

@@ -1,16 +1,21 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Chandler\Session;
+
 use Chandler\Patterns\TSimpleSingleton;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
 /**
  * Session singleton.
- * 
+ *
  * @author kurotsun <celestine@vriska.ru>
  */
 class Session
 {
+    use TSimpleSingleton;
     /**
      * @var array Associative array of session variables
      */
@@ -19,23 +24,24 @@ class Session
      * @var string Web-portal secret key
      */
     private $key;
-    
+
     /**
      * @internal
      */
     private function __construct()
     {
         $this->key = strtr(CHANDLER_ROOT_CONF["security"]["secret"], "-_", "+/");
-        
-        if(!isset($_COOKIE["CHANDLERSESS"]))
+
+        if (!isset($_COOKIE["CHANDLERSESS"])) {
             $this->initSession();
-        else
+        } else {
             $this->bootstrapData();
+        }
     }
-    
+
     /**
      * Sets CHANDLERSESS cookie to specified token.
-     * 
+     *
      * @internal
      * @param string $token Token
      * @return void
@@ -52,26 +58,26 @@ class Session
             true
         );
     }
-    
+
     /**
      * Calculates session token and sets session cookie value to it.
      * This function skips empty keys.
-     * 
+     *
      * @internal
      * @return void
      */
     private function updateSessionCookie(): void
     {
-        $this->data = array_filter($this->data, function($data) {
+        $this->data = array_filter($this->data, function ($data) {
             return !(is_null($data) && $data !== "");
         });
-        
+
         $this->setSessionCookie(JWT::encode($this->data, ($this->key), "HS512"));
     }
-    
+
     /**
      * Initializes session cookie with empty stub and loads no data.
-     * 
+     *
      * @internal
      * @return void
      */
@@ -79,14 +85,14 @@ class Session
     {
         $token = JWT::encode([], ($this->key), "HS512");
         $this->setSessionCookie($token);
-        
+
         $this->data = [];
     }
-    
+
     /**
      * Reads data from cookie.
      * If cookie is corrupted, session terminates and starts again.
-     * 
+     *
      * @internal
      * @uses \Chandler\Session\Session::initSession
      * @return void
@@ -95,16 +101,16 @@ class Session
     {
         try {
             $this->data = (array) JWT::decode($_COOKIE["CHANDLERSESS"], new Key($this->key, "HS512"));
-        } catch(\Exception $ex) {
+        } catch (\Exception $ex) {
             $this->initSession();
         }
     }
-    
+
     /**
      * Gets session variable.
      * May also set a variable if default value is present and
      * setting keys to default is permitted.
-     * 
+     *
      * @api
      * @param string $key Session variable name
      * @param scalar $default Default value
@@ -112,26 +118,24 @@ class Session
      * @uses \Chandler\Session\Session::set
      * @return scalar
      */
-    function get(string $key, $default = null, bool $set = false)
+    public function get(string $key, $default = null, bool $set = false)
     {
         return $this->data[sha1($key)] ?? ($set ? $this->set($key, $default) : $default);
     }
-    
+
     /**
      * Sets session variable.
-     * 
+     *
      * @api
      * @param string $key Session variable name
      * @param scalar $value Value
      * @return scalar Value
      */
-    function set(string $key, $value)
+    public function set(string $key, $value)
     {
         $this->data[sha1($key)] = $value;
         $this->updateSessionCookie();
-        
+
         return $value;
     }
-    
-    use TSimpleSingleton;
 }

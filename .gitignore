@@ -22,3 +22,5 @@
 
 /logs/*
 !/logs/.gitkeep
+
+.php-cs-fixer.cache

@@ -1,6 +1,10 @@
 {
+    "scripts": {
+        "fix": "php-cs-fixer fix",
+        "lint": "php-cs-fixer fix --dry-run --diff --verbose"
+    },
     "require": {
-        "php": "~8.1",
+        "php": "~8.2",
 	
         "nette/utils": "^3.0",
         "nette/di": "^3.0",
@@ -18,5 +22,8 @@
     },
     "suggest": {
         "ext-yaml": "for faster yaml parsing"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.90"
     }
 }
