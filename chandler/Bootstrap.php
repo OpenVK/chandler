@@ -4,7 +4,7 @@ declare(strict_types=1);
 require_once(dirname(__FILE__) . "/../vendor/autoload.php");
 use Tracy\Debugger;
 
-define("CHANDLER_VER", "0.0.1", false);
+define("CHANDLER_VER", "0.0.2", false);
 define("CHANDLER_ROOT", dirname(__FILE__) . "/..", false);
 
 /**
