@@ -5,14 +5,12 @@
     },
     "require": {
         "php": "~8.2",
-	
         "nette/utils": "^3.0",
         "nette/di": "^3.0",
         "nette/database": "^3.0",
         "swiftmailer/swiftmailer": "^6.2",
-        "latte/latte": "^3.0",
+        "latte/latte": "^3.1",
         "nette/safe-stream": "^2.4",
-        "nette/tokenizer": "^3.1",
         "firebase/php-jwt": "^6.11",
         "symfony/translation": "^5.0",
         "symfony/yaml": "^5.3",
