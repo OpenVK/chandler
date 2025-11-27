@@ -129,8 +129,8 @@ class Router
     {
         $di = $this->getDI($namespace);
 
-        $services = $di->findByType("\\$namespace\\Web\\Presenters\\$presenterName" . "Presenter", false);
-        return $di->getService($services[0], false);
+        $services = $di->findByType("\\$namespace\\Web\\Presenters\\$presenterName" . "Presenter");
+        return $di->getService($services[0]);
     }
 
     private function delegateView(string $filename, IPresenter $presenter): string
