@@ -30,6 +30,7 @@ abstract class SimplePresenter implements IPresenter
         $latte = new TemplatingEngine();
 
         $latte->setTempDirectory(CHANDLER_ROOT . "/tmp/cache/templates");
+        $latte->addExtension(new \Latte\Bridges\Tracy\TracyExtension());
         $latte->addExtension(new \Latte\Essential\RawPhpExtension());
 
         $latte->addExtension(new ChandlerExtension(static::class));
