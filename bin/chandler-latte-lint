@@ -14,6 +14,7 @@ final class TestPresenter extends SimplePresenter {}
 $presenter = new TestPresenter();
 $latte = $presenter->getTemplatingEngine();
 $latte->addExtension(new \Latte\Essential\TranslatorExtension(tr(...)));
+$latte->setStrictParsing();
 $linter = new Latte\Tools\Linter(engine: $latte);
 
 $ok = $linter->scanDirectory($path);
