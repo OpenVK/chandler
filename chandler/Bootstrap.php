@@ -148,7 +148,7 @@ class Bootstrap
         $this->loadConfig();
         $this->registerDebugger();
         $this->igniteExtensions();
-        
+
         if (!$headless) {
             header("Referrer-Policy: strict-origin-when-cross-origin");
             $this->defineIP();
