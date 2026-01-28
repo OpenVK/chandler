@@ -1,5 +1,9 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Chandler\Email;
+
 use Swift_SmtpTransport;
 use Swift_Message;
 use Swift_Mailer;
@@ -7,28 +11,28 @@ use Postmark\PostmarkClient;
 
 class Email
 {
-    static function send(string $to, string $subject, string $html)
+    public static function send(string $to, string $subject, string $html)
     {
-        if(isset(CHANDLER_ROOT_CONF["email"]["postmark"])) {
+        if (isset(CHANDLER_ROOT_CONF["email"]["postmark"])) {
             return (new PostmarkClient(CHANDLER_ROOT_CONF["email"]["postmark"]["key"]))->sendEmail(
                 CHANDLER_ROOT_CONF["email"]["postmark"]["user"],
                 $to,
                 $subject,
                 $html,
                 strip_tags($html),
-                NULL,
+                null,
                 true,
-                NULL,
-                NULL,
-                NULL,
+                null,
+                null,
+                null,
                 ["Sensitivity" => "Company-Confidential"],
-                NULL,
+                null,
                 "None",
-                NULL,
+                null,
                 CHANDLER_ROOT_CONF["email"]["postmark"]["stream"]
             );
         } else {
-            $transport = new Swift_SmtpTransport(CHANDLER_ROOT_CONF["email"]["host"], CHANDLER_ROOT_CONF["email"]["port"], CHANDLER_ROOT_CONF["email"]["ssl"] ? "ssl" : NULL);
+            $transport = new Swift_SmtpTransport(CHANDLER_ROOT_CONF["email"]["host"], CHANDLER_ROOT_CONF["email"]["port"], CHANDLER_ROOT_CONF["email"]["ssl"] ? "ssl" : null);
             $transport->setUsername(CHANDLER_ROOT_CONF["email"]["user"] ?? CHANDLER_ROOT_CONF["email"]["addr"]);
             $transport->setPassword(CHANDLER_ROOT_CONF["email"]["pass"]);
 

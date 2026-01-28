@@ -1,4 +1,7 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Chandler\Eventing\Events;
 
 class Event
@@ -7,30 +10,30 @@ class Event
     protected $code;
     protected $time;
     protected $pristine = true;
-    
-    function __construct($data = "", float $code = 0)
+
+    public function __construct($data = "", float $code = 0)
     {
         $this->data = $data;
         $this->code = $code;
         $this->time = time();
     }
-    
-    function getData()
+
+    public function getData()
     {
         return $this->data;
     }
-    
-    function getCode()
+
+    public function getCode()
     {
         return $this->code;
     }
-    
-    function getTime()
+
+    public function getTime()
     {
         return $this->time;
     }
-    
-    function isTainted()
+
+    public function isTainted()
     {
         return !$this->pristine;
     }

@@ -1,20 +1,25 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 function system_extension_mime_types(): array
 {
     # Returns the system MIME type mapping of extensions to MIME types, as defined in /etc/mime.types.
     $out = [];
     $file = fopen(__DIR__ . '/../bindata/mime.types', 'r');
-    while(($line = fgets($file)) !== false) {
+    while (($line = fgets($file)) !== false) {
         $line = trim(preg_replace('/#.*/', '', $line));
-        if(!$line)
+        if (!$line) {
             continue;
+        }
         $parts = preg_split('/\s+/', $line);
-        if(count($parts) == 1)
+        if (count($parts) == 1) {
             continue;
+        }
         $type = array_shift($parts);
-        foreach($parts as $part)
+        foreach ($parts as $part) {
             $out[$part] = $type;
+        }
     }
     fclose($file);
     return $out;
@@ -28,16 +33,18 @@ function system_extension_mime_type(string $file): ?string
     $aliases = [
         "apng" => "png",
     ];
-    
+
     static $types;
-    if(!isset($types))
+    if (!isset($types)) {
         $types = system_extension_mime_types();
+    }
     $ext = pathinfo($file, PATHINFO_EXTENSION);
-    if(!$ext)
+    if (!$ext) {
         $ext = $file;
+    }
     $ext = strtolower($ext);
     $ext = $aliases[$ext] ?? $ext;
-    return isset($types[$ext]) ? $types[$ext] : null;
+    return $types[$ext] ?? null;
 }
 
 function system_mime_type_extensions(): array
@@ -46,16 +53,19 @@ function system_mime_type_extensions(): array
     # extension listed to be canonical).
     $out = [];
     $file = fopen('/etc/mime.types', 'r');
-    while(($line = fgets($file)) !== false) {
+    while (($line = fgets($file)) !== false) {
         $line = trim(preg_replace('/#.*/', '', $line));
-        if(!$line)
+        if (!$line) {
             continue;
+        }
         $parts = preg_split('/\s+/', $line);
-        if(count($parts) == 1)
+        if (count($parts) == 1) {
             continue;
+        }
         $type = array_shift($parts);
-        if(!isset($out[$type]))
+        if (!isset($out[$type])) {
             $out[$type] = array_shift($parts);
+        }
     }
     fclose($file);
     return $out;
@@ -68,7 +78,8 @@ function system_mime_type_extension(string $type): ?string
     #
     # $type - the MIME type
     static $exts;
-    if(!isset($exts))
+    if (!isset($exts)) {
         $exts = system_mime_type_extensions();
-    return isset($exts[$type]) ? $exts[$type] : null;
+    }
+    return $exts[$type] ?? null;
 }

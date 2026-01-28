@@ -1,0 +1,21 @@
+#!/usr/bin/env php
+<?php
+
+$_SERVER["HTTP_ACCEPT_LANGUAGE"] = false;
+$bootstrap = require(__DIR__ . "/../chandler/Bootstrap.php");
+$bootstrap->ignite(true);
+
+$path = $argv[1] ?? '.';
+
+use Chandler\MVC\SimplePresenter;
+
+final class TestPresenter extends SimplePresenter {}
+
+$presenter = new TestPresenter();
+$latte = $presenter->getTemplatingEngine();
+$latte->addExtension(new \Latte\Essential\TranslatorExtension(tr(...)));
+$latte->setStrictParsing();
+$linter = new Latte\Tools\Linter(engine: $latte);
+
+$ok = $linter->scanDirectory($path);
+exit($ok ? 0 : 1);
