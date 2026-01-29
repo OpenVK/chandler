@@ -16,6 +16,23 @@ define("CHANDLER_ROOT", dirname(__FILE__) . "/..", false);
  */
 class Bootstrap
 {
+    private function ensureDirectoriesCreated(): void
+    {
+        function makeDir($path)
+        {
+            return is_dir($path) || mkdir($path);
+
+        }
+
+        makeDir(__DIR__ . "/../logs");
+        makeDir(__DIR__ . "/../tmp");
+        makeDir(__DIR__ . "/../tmp/cache");
+        makeDir(__DIR__ . "/../tmp/cache/database");
+        makeDir(__DIR__ . "/../tmp/cache/templates");
+        makeDir(__DIR__ . "/../tmp/cache/yaml");
+        makeDir(__DIR__ . "/../tmp/plugins-artifacts");
+    }
+
     /**
      * Starts Tracy debugger session and installs panels.
      *
@@ -143,6 +160,7 @@ class Bootstrap
      */
     public function ignite(bool $headless = false): void
     {
+        $this->ensureDirectoriesCreated();
         $this->registerFunctions();
         $this->registerAutoloaders();
         $this->loadConfig();
