@@ -82,7 +82,11 @@ abstract class DBEntity
 
     protected function getContextUserId(): string
     {
-        return (string) $this->user->getId();
+        $id = ($this->user && method_exists($this->user, 'getId'))
+            ? $this->user->getId()
+            : 1;
+
+        return (string) $id;
     }
 
     protected function log(int $type, array $extraChanges = []): void
