@@ -6,21 +6,12 @@
 !/extensions/available/.gitkeep
 !/extensions/enabled/.gitkeep
 
-/tmp/cache/di_*
-/tmp/plugin_artifacts/*
-/tmp/cache/database/*
-/tmp/cache/templates/*
-/tmp/cache/yaml/*
-!/tmp/plugin_artifacts/.gitkeep
-!/tmp/cache/database/.gitkeep
-!/tmp/cache/templates/.gitkeep
-!/tmp/cache/yaml/.gitkeep
+/tmp
 
 /htdocs/*
 !/htdocs/.htaccess
 !/htdocs/index.php
 
-/logs/*
-!/logs/.gitkeep
+/logs
 
 .php-cs-fixer.cache
