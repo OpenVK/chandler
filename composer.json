@@ -1,23 +1,25 @@
 {
+    "scripts": {
+        "fix": "php-cs-fixer fix",
+        "lint": "php-cs-fixer fix --dry-run --diff --verbose"
+    },
     "require": {
-        "php": "~8.1",
-	
-        "nette/utils": "^3.0",
-        "nette/di": "^3.0",
-        "nette/database": "^3.0",
+        "php": "~8.2",
+        "nette/utils": "^4.0",
+        "nette/di": "^3.2",
+        "nette/database": "^3.2",
         "swiftmailer/swiftmailer": "^6.2",
-        "latte/latte": "^2.10",
-        "nette/safe-stream": "^2.4",
-        "nette/tokenizer": "^3.1",
-        "firebase/php-jwt": "^5.0",
-        "symfony/translation": "^5.0",
-        "symfony/yaml": "^5.3",
-        "guzzlehttp/guzzle": "^6.0",
-        "wildbit/postmark-php": "^4.0",
-        "tracy/tracy": "^2.10",
+        "latte/latte": "^3.1",
+        "firebase/php-jwt": "^6.11",
+        "symfony/yaml": "^7.3",
+        "wildbit/postmark-php": "^7.0",
+        "tracy/tracy": "^2.11",
         "predis/predis": "^3.2"
     },
     "suggest": {
         "ext-yaml": "for faster yaml parsing"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.90"
     }
 }

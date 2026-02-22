@@ -1,15 +1,19 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Chandler\MVC;
+
 use Latte\Engine as TemplatingEngine;
 
 interface IPresenter
 {
-    function getTemplatingEngine(): TemplatingEngine;
-    function getTemplateScope(): array;
-    
-    function onStartup(): void;
-    function onBeforeRender(): void;
-    function onAfterRender(): void;
-    function onStop(): void;
-    function onDestruction(): void;
+    public function getTemplatingEngine(): TemplatingEngine;
+    public function getTemplateScope(): array;
+
+    public function onStartup(): void;
+    public function onBeforeRender(): void;
+    public function onAfterRender(): void;
+    public function onStop(): void;
+    public function onDestruction(): void;
 }

@@ -1,49 +1,54 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace Chandler\Debug;
+
 use Nette\Database\Helpers as DbHelpers;
 
 class DatabasePanel implements \Tracy\IBarPanel
 {
     use \Nette\SmartObject;
-    
+
     public function getTab()
     {
-        if(isset($GLOBALS["dbgSqlQueries"])) {
+        if (isset($GLOBALS["dbgSqlQueries"])) {
             $count = sizeof($GLOBALS["dbgSqlQueries"]);
             $time  = ceil($GLOBALS["dbgSqlTime"] * 1000);
         } else {
             $count = "No";
             $time  = 0;
         }
-            
+
         $svg = file_get_contents(__DIR__ . "/templates/db-icon.svg");
         return <<<EOF
-        <span title="DB Queries">
-            $svg
-            <span class="tracy-label">$count queries ($time ms)</span>
-        </span>
-EOF;
+                    <span title="DB Queries">
+                        $svg
+                        <span class="tracy-label">$count queries ($time ms)</span>
+                    </span>
+            EOF;
     }
-    
+
     public function getPanel()
     {
-        if(!isset($GLOBALS["dbgSqlQueries"]))
+        if (!isset($GLOBALS["dbgSqlQueries"])) {
             return "<b>No queries were made...</b>";
-        
+        }
+
         $html = <<<HTML
-        <h1>Queries:</h1>
-        <div class="tracy-inner">
-        <div class="tracy-inner-container">
-            <table class="tracy-sortable">
-HTML;
-        
-        foreach($GLOBALS["dbgSqlQueries"] as $query) {
+                    <h1>Queries:</h1>
+                    <div class="tracy-inner">
+                    <div class="tracy-inner-container">
+                        <table class="tracy-sortable">
+            HTML;
+
+        foreach ($GLOBALS["dbgSqlQueries"] as $query) {
             $query = DbHelpers::dumpSql($query);
             $html .= "<tr><td>$query</td></tr>";
         }
-        
+
         $html .= "</table></div></div>";
-        
+
         return $html;
     }
 }
