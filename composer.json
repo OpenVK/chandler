@@ -14,7 +14,7 @@
         "symfony/yaml": "^7.3",
         "wildbit/postmark-php": "^7.0",
         "tracy/tracy": "^2.11",
-        "predis/predis": "^3.2"
+        "predis/predis": "^3.4"
     },
     "suggest": {
         "ext-yaml": "for faster yaml parsing"
