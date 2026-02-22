@@ -17,22 +17,22 @@ use Predis\Client as RedisClient;
 class SignalManager
 {
     use TSimpleSingleton;
-    
+
     /**
      * @var int Latest event timestamp.
      */
     private $since;
-    
+
     /**
      * @var \PDO PDO Connection to events SQLite DB.
      */
     private $connection;
-    
+
     /**
      * @var RedisClient|null Redis client for events.
      */
     private $redisClient;
-    
+
     /**
      * @var bool Whether to use Redis for operations.
      */
@@ -44,7 +44,7 @@ class SignalManager
     private function __construct()
     {
         $this->since = time();
-        
+
         // Check if Redis is configured
         if (!empty(CHANDLER_ROOT_CONF["redisUrl"])) {
             try {
@@ -58,7 +58,7 @@ class SignalManager
                 $this->redisClient = null;
             }
         }
-        
+
         // Initialize SQLite connection (fallback)
         if (!$this->useRedis) {
             $this->connection = new \PDO(
@@ -86,11 +86,11 @@ class SignalManager
             $since = $this->since - 1;
             $key = "events:$for";
             $events = $this->redisClient->zrevrangebyscore($key, '+inf', $since, ['LIMIT' => [0, 1]]);
-            
+
             if (empty($events)) {
                 return null;
             }
-            
+
             $eventData = json_decode($events[0], true);
             $this->since = time();
             return [$eventData['id'], unserialize(hex2bin($eventData['event']))];
@@ -126,21 +126,21 @@ class SignalManager
 
             // We will catch the old message first
             $oldEvent = $this->eventFor($for);
-            
+
             if ($oldEvent) {
-                list($id, $evt) = $oldEvent;
-                $id = crc32((string)$id);
+                [$id, $evt] = $oldEvent;
+                $id = crc32((string) $id);
                 $callback($evt, $id);
             }
 
             // And then we will subscribe to user's channel
             $subscriber = $redisClient->pubSubLoop();
-            $subscriber->subscribe('im'.$for);
+            $subscriber->subscribe('im' . $for);
 
-            foreach($subscriber as $event) {
-                if ($event->kind == 'message' && $event->channel == 'im'.$for) {
-                    list($id, $evt) = json_decode($event->payload);
-                    $id = crc32((string)$id);
+            foreach ($subscriber as $event) {
+                if ($event->kind == 'message' && $event->channel == 'im' . $for) {
+                    [$id, $evt] = json_decode($event->payload);
+                    $id = crc32((string) $id);
                     $evt = unserialize(hex2bin($evt));
                     $callback($evt, $id);
                 }
@@ -148,10 +148,8 @@ class SignalManager
 
             // On timeout we're returning nothing
             exit("[]");
-        } 
-        catch (Exception $e) 
-        {
-            error_log("Couldn't connect to Redis server, fallback to old sqlite method. Exception Message: ".$e->getMessage());
+        } catch (Exception $e) {
+            error_log("Couldn't connect to Redis server, fallback to old sqlite method. Exception Message: " . $e->getMessage());
         }
 
         $this->since = time() - 1;
@@ -185,11 +183,11 @@ class SignalManager
             // Use Redis
             $key = "events:$for";
             $events = $this->redisClient->zrevrange($key, 0, 0, ['WITHSCORES' => true]);
-            
+
             if (empty($events)) {
                 return 1;
             }
-            
+
             // Return the score (timestamp) of the latest event
             return (int) reset($events);
         } else {
@@ -220,15 +218,15 @@ class SignalManager
             $res = [];
             $tip ??= $this->tipFor($for);
             $key = "events:$for";
-            
+
             // Get events with scores greater than tip
             $events = $this->redisClient->zrevrangebyscore($key, '+inf', $tip, ['LIMIT' => [0, $limit]]);
-            
+
             foreach ($events as $eventJson) {
                 $eventData = json_decode($eventJson, true);
                 $res[] = unserialize(hex2bin($eventData['event']));
             }
-            
+
             return $res;
         } else {
             // Use SQLite
@@ -256,7 +254,7 @@ class SignalManager
         $event = bin2hex(serialize($event));
         $since = time();
         $id = null;
-        
+
         if ($this->useRedis && $this->redisClient) {
             // Use Redis
             $key = "events:$for";
@@ -264,7 +262,7 @@ class SignalManager
             $eventData = [
                 'id' => $id,
                 'event' => $event,
-                'since' => $since
+                'since' => $since,
             ];
             $this->redisClient->zadd($key, $since, json_encode($eventData));
         } else {
@@ -277,12 +275,12 @@ class SignalManager
         if ($id !== null) {
             try {
                 $redisClient = new RedisClient(CHANDLER_ROOT_CONF["redisUrl"]);
-                $redisClient->publish('im'.$for, json_encode([$id, $event]));
+                $redisClient->publish('im' . $for, json_encode([$id, $event]));
             } catch (Exception $e) {
-                error_log("Couldn't connect to Redis server and push the event. Exception Message: ".$e->getMessage());
+                error_log("Couldn't connect to Redis server and push the event. Exception Message: " . $e->getMessage());
             }
         }
-        
+
         return true;
     }
 }
