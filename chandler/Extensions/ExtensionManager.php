@@ -111,7 +111,9 @@ class ExtensionManager
     public function getExtensions(bool $onlyEnabled = false): array
     {
         return $onlyEnabled
-               ? array_filter($this->extensions, function ($e) { return $e->enabled; })
+               ? array_filter($this->extensions, function ($e) {
+                   return $e->enabled;
+               })
                : $this->extensions;
     }
 

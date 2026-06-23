@@ -32,6 +32,11 @@ class User
     private $tainted;
 
     /**
+     * @var Permissions Cached permissions to save on SQL Queries
+     */
+    private $permissions = null;
+
+    /**
      * @param \Nette\Database\Table\ActiveRow $user ActiveRow that represents user
      * @param bool $tainted Does this user is not the one who is logged in, but substituted?
      */
@@ -92,7 +97,7 @@ class User
      */
     public function getPermissions(): Permissions
     {
-        return new Permissions($this);
+        return $this->$permissions ??= new Permissions($this);
     }
 
     /**

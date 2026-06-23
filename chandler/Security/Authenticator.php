@@ -77,7 +77,8 @@ class Authenticator
         return @$this->cache[$cacheKey] ??= $this->resolveUser($token, $su);
     }
 
-    private function resolveUser(string $token, $su) {
+    private function resolveUser(string $token, $su)
+    {
         $token = $this->db
                       ->table("ChandlerTokens")
                       ->where([
