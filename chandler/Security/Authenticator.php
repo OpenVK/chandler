@@ -14,6 +14,9 @@ class Authenticator
     private $db;
     private $session;
 
+    /* aggressive caching */
+    private static $cache = [];
+
     private function __construct()
     {
         $this->db      = DatabaseConnection::i()->getContext();
@@ -69,6 +72,12 @@ class Authenticator
             return null;
         }
 
+        $su = $this->session->get("_su");
+        $cacheKey = $token . "\x00" . ($su ?? "");
+        return @$this->cache[$cacheKey] ??= $this->resolveUser($token, $su);
+    }
+
+    private function resolveUser(string $token, $su) {
         $token = $this->db
                       ->table("ChandlerTokens")
                       ->where([
