@@ -190,4 +190,19 @@ class User
 
         return new static($user);
     }
+
+    /**
+     * Pukes out list of active sessions.
+     *
+     * @return \Traversable 
+     */
+    public function getSessions(): \Traversable
+    {
+        $sessions = DatabaseConnection::i()->getContext()->table("ChandlerTokens");
+        $uuid = $this->getId();
+        $result = $sessions->where("user", $uuid);
+        foreach ($result as $session) {
+            yield (object) $session->toArray();
+        }
+    }
 }
