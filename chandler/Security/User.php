@@ -34,7 +34,7 @@ class User
     /**
      * @var Permissions Cached permissions to save on SQL Queries
      */
-    private $permissions = null;
+    private $permissions;
 
     /**
      * @param \Nette\Database\Table\ActiveRow $user ActiveRow that represents user
@@ -97,7 +97,7 @@ class User
      */
     public function getPermissions(): Permissions
     {
-        return $this->$permissions ??= new Permissions($this);
+        return $this->permissions ??= new Permissions($this);
     }
 
     /**
