@@ -128,11 +128,11 @@ class SignalManager
 
             // We will catch the old message first
             $oldEvent = $this->eventFor($for);
+            $deliveredKey = "im:{$for}:last_delivered";
 
             if ($oldEvent) {
                 [$id, $evt] = $oldEvent;
 
-                $deliveredKey = "im:{$for}:last_delivered";
                 $lastDelivered = $redisClient->get($deliveredKey);
                 if (empty($lastDelivered) || $lastDelivered !== $id) {
                     $redisClient->set($deliveredKey, $id);
@@ -149,6 +149,7 @@ class SignalManager
                 foreach ($subscriber as $event) {
                     if ($event->kind == 'message' && $event->channel == 'im' . $for) {
                         [$id, $evt] = json_decode($event->payload);
+                        $redisClient->set($deliveredKey, $id);
                         $id = crc32((string) $id);
                         $evt = unserialize(hex2bin($evt));
                         $callback($evt, $id);
