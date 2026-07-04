@@ -125,7 +125,7 @@ class SignalManager
             $params = parse_url(CHANDLER_ROOT_CONF["redisUrl"]);
             $params['read_write_timeout'] = $time;
             $redisClient = new RedisClient($params);
-            
+
             // We will catch the old message first
             $oldEvent = $this->eventFor($for);
 

@@ -194,7 +194,7 @@ class User
     /**
      * Pukes out list of active sessions.
      *
-     * @return \Traversable 
+     * @return \Traversable
      */
     public function getSessions(): \Traversable
     {
