@@ -131,12 +131,12 @@ class SignalManager
 
             if ($oldEvent) {
                 [$id, $evt] = $oldEvent;
-                $id = crc32((string) $id);
 
                 $deliveredKey = "im:{$for}:last_delivered";
                 $lastDelivered = $redisClient->get($deliveredKey);
-                if (empty($lastDelivered) || $lastDelivered !== strval($id)) {
+                if (empty($lastDelivered) || $lastDelivered !== $id) {
                     $redisClient->set($deliveredKey, $id);
+                    $id = crc32((string) $id);
                     $callback($evt, $id);
                 }
             }
