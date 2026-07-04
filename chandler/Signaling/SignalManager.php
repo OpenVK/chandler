@@ -122,7 +122,11 @@ class SignalManager
     public function listen(\Closure $callback, int $for, int $time = 25): void
     {
         try {
-            $redisClient = new RedisClient(CHANDLER_ROOT_CONF["redisUrl"], ['read_write_timeout' => $time]);
+            $params = parse_url(CHANDLER_ROOT_CONF["redisUrl"]);
+            $params['read_write_timeout'] = $time;
+            $redisClient = new RedisClient($params);
+
+            var_dump($redisClient->getConnection()->getParameters()->read_write_timeout);
 
             // We will catch the old message first
             $oldEvent = $this->eventFor($for);
@@ -137,17 +141,23 @@ class SignalManager
             $subscriber = $redisClient->pubSubLoop();
             $subscriber->subscribe('im' . $for);
 
-            foreach ($subscriber as $event) {
-                if ($event->kind == 'message' && $event->channel == 'im' . $for) {
-                    [$id, $evt] = json_decode($event->payload);
-                    $id = crc32((string) $id);
-                    $evt = unserialize(hex2bin($evt));
-                    $callback($evt, $id);
+            try {
+                foreach ($subscriber as $event) {
+                    if ($event->kind == 'message' && $event->channel == 'im' . $for) {
+                        [$id, $evt] = json_decode($event->payload);
+                        $id = crc32((string) $id);
+                        $evt = unserialize(hex2bin($evt));
+                        $callback($evt, $id);
+                    }
                 }
+            } catch (\Predis\TimeoutException $e) {
+                // On timeout we're returning nothing
+                $subscriber->stop();
+                exit(json_encode([
+                    "ts"      => time(),
+                    "updates" => [],
+                ]));
             }
-
-            // On timeout we're returning nothing
-            exit("[]");
         } catch (Exception $e) {
             error_log("Couldn't connect to Redis server, fallback to old sqlite method. Exception Message: " . $e->getMessage());
         }
