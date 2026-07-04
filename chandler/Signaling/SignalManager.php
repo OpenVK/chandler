@@ -132,7 +132,14 @@ class SignalManager
             if ($oldEvent) {
                 [$id, $evt] = $oldEvent;
                 $id = crc32((string) $id);
-                $callback($evt, $id);
+
+                $deliveredKey = "im:{$for}:last_delivered";
+                $lastDelivered = $redisClient->get($deliveredKey);
+                if (empty($lastDelivered) && (int) $lastDelivered !== $id) {
+                    $redisClient->set($deliveredKey, $id);
+                    $callback($evt, $id);
+                }
+
             }
 
             // And then we will subscribe to user's channel
