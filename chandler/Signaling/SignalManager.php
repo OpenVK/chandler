@@ -135,7 +135,7 @@ class SignalManager
 
                 $deliveredKey = "im:{$for}:last_delivered";
                 $lastDelivered = $redisClient->get($deliveredKey);
-                if (empty($lastDelivered) || (int) $lastDelivered !== $id) {
+                if (empty($lastDelivered) || $lastDelivered !== strval($id)) {
                     $redisClient->set($deliveredKey, $id);
                     $callback($evt, $id);
                 }
