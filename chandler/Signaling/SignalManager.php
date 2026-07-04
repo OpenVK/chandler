@@ -149,7 +149,7 @@ class SignalManager
                 foreach ($subscriber as $event) {
                     if ($event->kind == 'message' && $event->channel == 'im' . $for) {
                         [$id, $evt] = json_decode($event->payload);
-                        $redisClient->set($deliveredKey, $id);
+                        $this->redisClient->set($deliveredKey, $id);
                         $id = crc32((string) $id);
                         $evt = unserialize(hex2bin($evt));
                         $callback($evt, $id);
