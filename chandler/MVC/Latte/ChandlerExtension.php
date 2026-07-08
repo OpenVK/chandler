@@ -15,6 +15,7 @@ class ChandlerExtension extends \Latte\Extension
         return [
             'css' => CssNode::create(...),
             'script' => ScriptNode::create(...),
+            'script_module' => ModuleScriptNode::create(...),
             'presenter' => PresenterNode::create(...),
         ];
     }
