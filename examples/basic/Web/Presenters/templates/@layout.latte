@@ -1,0 +1,41 @@
+{* ─── Base layout ───────────────────────────────────────────────────
+ *
+ * This is the parent template used by all pages via {extends}.
+ * The name starts with @ to mark it as a layout (not an action template).
+ *
+ * Chandler uses Latte — a PHP template engine with a concise syntax.
+ * Key features used here:
+ *   {ifset title}               → check if the "title" block was defined
+ *   {include title}             → render the "title" block from child
+ *   {include content}           → render the "content" block from child
+ *   {php echo CHANDLER_VER}    → inline PHP expression
+ *
+ * Template variables come from $this->template in the Presenter.
+ * Child templates extend this layout and define blocks to override.
+ *}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    {* If the child template defined a "title" block, show it before
+       the site name. Otherwise just show "Hello App". *}
+    <title>{ifset title}{$title} — {/ifset}Hello App</title>
+    <style>
+        body { font-family: sans-serif; max-width: 640px; margin: 2em auto; padding: 0 1em; line-height: 1.6; }
+        h1 { color: #333; }
+        a { color: #06c; }
+        footer { margin-top: 2em; font-size: 0.85em; color: #888; }
+    </style>
+</head>
+<body>
+{* The content block is defined by each child template — this is
+   where the actual page body goes. *}
+{include content}
+
+<footer>
+    {* CHANDLER_VER is defined in chandler/Bootstrap.php *}
+    <p>Powered by Chandler {php echo CHANDLER_VER; }</p>
+</footer>
+</body>
+</html>

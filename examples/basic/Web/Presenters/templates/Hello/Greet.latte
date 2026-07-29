@@ -1,0 +1,17 @@
+{* ─── Greeting page ─────────────────────────────────────────────────
+ *
+ * Demonstrates a route parameter ($name) being passed from the URL
+ * through the Presenter into the template.
+ *
+ * The "title" block is also defined here, which makes @layout.latte
+ * render "Hello, world — Hello App" in the <title> tag.
+ *}
+
+{extends "../@layout.latte"}
+
+{block title}{$title}{/block}
+
+{block content}
+    <h1>Hello, {$name}!</h1>
+    <p><a href="/">Back home</a></p>
+{/block}

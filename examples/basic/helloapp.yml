@@ -1,0 +1,87 @@
+# ─── Framework configuration (chandler:) ──────────────────────────────
+# Controls the Chandler framework itself. OpenVK uses the exact same
+# layout: one YAML file with chandler: settings and app-specific keys.
+
+chandler:
+    # Enable the Tracy debug bar and blue-screen error pages.
+    # Set to false in production.
+    debug: true
+
+    # Which builtin extension is mounted at the root ("/").
+    # "helloapp" matches the first argument of registerBuiltin().
+    rootApp: "helloapp"
+
+    # ─── Database ───────────────────────────────────────────────────
+    # MySQL-compatible database for sessions, ORM entities, and auth.
+    # The connection is lazy — no DB round-trip on cache-hit pages.
+    database:
+        dsn: "mysql:host=localhost;dbname=helloapp"
+        user: "root"
+        password: "root"
+
+    # ─── Security ───────────────────────────────────────────────────
+    security:
+        # 128-character random hex string used for CSRF tokens, JWT
+        # session signing, and captcha encryption. Generate one with:
+        #   php -r "echo bin2hex(random_bytes(64));"
+        secret: "change-this-to-a-random-128-char-string"
+
+        # "disabled" | "permissive" | "strict"
+        # Disabled here because the example has no forms to protect.
+        csrfProtection: "disabled"
+
+        # When true, session tokens are bound to the IP and User-Agent
+        # that created them (hardens session hijacking but can break
+        # mobile users whose IP changes).
+        extendedValidation: false
+
+        # Session cookie lifetime in days.
+        sessionDuration: 14
+
+    # ─── Captcha ────────────────────────────────────────────────────
+    # Built-in WebP captcha. When enabled, /captcha.webp is registered
+    # automatically by Bootstrap. Uses security.secret for encryption.
+    captcha:
+        enable: false
+
+    # ─── Change logging ────────────────────────────────────────────
+    preferences:
+        logs:
+            # When true, every DBEntity create/update/delete is
+            # recorded in the chandler_log table.
+            enabled: true
+
+            # Stripped from class names when writing log entries.
+            # e.g. "openkv\Web\Models\Entities\User" → "User".
+            entitiesNamespace: "openvk\\Web\\Models\\Entities\\"
+
+    # ─── Email (optional) ──────────────────────────────────────────
+    # SMTP is the default. If a "postmark" sub-key exists, Postmark's
+    # API is used instead. Omit the entire section if you don't send
+    # email.
+    email:
+        host: "mail.example.com"
+        port: 465
+        user: "user"
+        pass: "word"
+        addr: "noreply@example.com"
+        ssl: true
+
+        # To use Postmark instead, uncomment these lines:
+        #postmark:
+        #    key: "your-postmark-api-key"
+        #    user: "sender@example.com"
+        #    stream: "broadcast"
+
+    # ─── Redis / real-time events (optional) ───────────────────────
+    # Used by SignalManager for pub/sub subscriptions and real-time
+    # notifications. Omit if you don't need signaling.
+    redisUrl: "tcp://10.0.0.1:6379"
+
+    # ─── App configuration (helloapp:) ─────────────────────────────────
+# This section is parsed as HELLOAPP_ROOT_CONF and is accessible from
+# any Presenter or template at runtime.
+helloapp:
+    debug: true
+    name: "Hello App"
+    message: "Hello from Chandler!"

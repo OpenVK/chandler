@@ -1,0 +1,15 @@
+# ─── Nette DI container configuration ───────────────────────────────
+#
+# Chandler uses Nette DI for dependency injection. Every Presenter
+# that will be instantiated by the Router must be registered here.
+#
+# The Router builds a DI container per namespace by loading
+# Web/di.yml from the extension path. Services defined here are
+# available for autowiring.
+#
+# When Router::getPresenter() is called, it looks up the class
+# by type (e.g. helloapp\Web\Presenters\HelloPresenter) and
+# returns the matching service from the container.
+
+services:
+    - helloapp\Web\Presenters\HelloPresenter

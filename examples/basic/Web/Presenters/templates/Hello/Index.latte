@@ -1,0 +1,16 @@
+{* ─── Homepage ──────────────────────────────────────────────────────
+ *
+ * This template extends the base layout and fills the content block.
+ * The {$message} variable is set by HelloPresenter::renderIndex().
+ *
+ * Block reference:
+ *   {extends}  → declares parent layout (path relative to this file)
+ *   {block}    → defines content for a named block from the parent
+ *}
+
+{extends "../@layout.latte"}
+
+{block content}
+    <h1>{$message}</h1>
+    <p>Try <a href="/hello/world">/hello/world</a>.</p>
+{/block}
