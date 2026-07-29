@@ -22,6 +22,8 @@ class Router
     private $statics = [];
     private $scope   = [];
 
+    private static $extensionPaths = [];
+
     private $events;
 
     protected $types = [
@@ -33,6 +35,20 @@ class Router
     private function __construct()
     {
         $this->events = EventDispatcher::i();
+    }
+
+    public static function setExtensionPath(string $namespace, string $path): void
+    {
+        self::$extensionPaths[$namespace] = rtrim($path, "/");
+    }
+
+    public static function getExtensionPath(string $namespace): string
+    {
+        if (isset(self::$extensionPaths[$namespace])) {
+            return self::$extensionPaths[$namespace];
+        }
+
+        return CHANDLER_ROOT . "/extensions/enabled/$namespace";
     }
 
     private function computeRegExp(string $route, array $customAliases = [], ?string $prefix = null): string
@@ -59,7 +75,7 @@ class Router
             }
 
             return $replacement;
-        }, addslashes($route));
+        }, str_replace('.', '\.', addslashes($route)));
 
         if (!is_null($prefix)) {
             $regexp = "\\/$prefix\\" . ($route === "/" ? "/" : "/$regexp");
@@ -119,7 +135,7 @@ class Router
             $fileLoader = new \Nette\DI\Config\Loader();
             $fileLoader->addAdapter("yml", \Nette\DI\Config\Adapters\NeonAdapter::class);
 
-            $compiler->loadConfig(CHANDLER_EXTENSIONS_ENABLED . "/$namespace/Web/di.yml", $fileLoader);
+            $compiler->loadConfig(self::getExtensionPath($namespace) . "/Web/di.yml", $fileLoader);
         });
 
         return new $class();
@@ -153,7 +169,7 @@ class Router
 
             $tpl = $this->scope["_template"] ?? "$presenterName/$action.latte";
             if ($tpl[0] !== "/") {
-                $dir = CHANDLER_EXTENSIONS_ENABLED . "/$namespace/Web/Presenters/templates";
+                $dir = self::getExtensionPath($namespace) . "/Web/Presenters/templates";
                 $tpl = "$dir/$tpl";
                 if (isset($this->scope["_templatePath"])) {
                     $tpl = str_replace($dir, $this->scope["_templatePath"], $tpl);
@@ -162,7 +178,7 @@ class Router
 
             if (!file_exists($tpl)) {
                 trigger_error("Could not open $tpl as template, falling back.", E_USER_NOTICE);
-                $tpl = CHANDLER_EXTENSIONS_ENABLED . "/$namespace/Web/Presenters/templates/$presenterName/$action.latte";
+                $tpl = self::getExtensionPath($namespace) . "/Web/Presenters/templates/$presenterName/$action.latte";
             }
 
             //if(str_contains($presenterName, "Poll")) return json_encode($this->scope);
@@ -277,7 +293,7 @@ class Router
         $config = chandler_parse_yaml($filename);
 
         if (isset($config["static"])) {
-            $this->pushStatic($namespace, CHANDLER_EXTENSIONS_ENABLED . "/$namespace/Web/$config[static]");
+            $this->pushStatic($namespace, self::getExtensionPath($namespace) . "/Web/$config[static]");
         }
 
         if (isset($config["include"])) {
