@@ -1,4 +1,5 @@
 {
+    "name": "openvk/chandler",
     "scripts": {
         "fix": "php-cs-fixer fix",
         "lint": "php-cs-fixer fix --dry-run --diff --verbose"
@@ -18,6 +19,22 @@
     },
     "suggest": {
         "ext-yaml": "for faster yaml parsing"
+    },
+    "autoload": {
+        "psr-4": {
+            "Chandler\\": "chandler/"
+        },
+        "classmap": [
+            "chandler/Bootstrap.php"
+        ],
+        "files": [
+            "chandler/procedural/yaml.php",
+            "chandler/procedural/panic.php",
+            "chandler/procedural/db_busy.php",
+            "chandler/procedural/mimes.php",
+            "chandler/procedural/escape_url.php",
+            "chandler/procedural/captcha.php"
+        ]
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.90"
