@@ -31,7 +31,6 @@ class ExtensionManager
     {
         foreach (self::$builtinExtensions as $name => $config) {
             $this->extensions[$name] = (object) ($config["manifest"] + [
-                "init"        => "ovk-init.php",
                 "name"        => $name,
                 "description" => "Builtin extension",
                 "version"     => "0.0.0",
