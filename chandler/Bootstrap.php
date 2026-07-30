@@ -3,7 +3,7 @@
 declare(strict_types=1);
 use Tracy\Debugger;
 
-define("CHANDLER_VER", "0.0.2", false);
+define("CHANDLER_VER", "0.1.0", false);
 
 /**
  * Bootstrap class, that is called during framework starting phase.
