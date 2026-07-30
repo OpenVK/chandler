@@ -4,6 +4,8 @@
 /tmp
 /tmp/events.bin
 
+/extensions
+
 /logs
 
 .php-cs-fixer.cache
