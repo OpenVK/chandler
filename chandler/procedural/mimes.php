@@ -42,6 +42,11 @@ function system_extension_mime_type(string $file): ?string
     if (!$ext) {
         $ext = $file;
     }
+
+    if ($ext === "js" || $ext === "mjs") {
+        return "text/javascript";
+    }
+
     $ext = strtolower($ext);
     $ext = $aliases[$ext] ?? $ext;
     return $types[$ext] ?? null;
