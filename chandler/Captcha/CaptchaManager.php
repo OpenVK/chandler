@@ -85,6 +85,13 @@ class CaptchaManager
         return $image;
     }
 
+    private function deriveKey(): string
+    {
+        $secret = CHANDLER_ROOT_CONF["security"]["secret"] ?? "";
+
+        return substr(hash("sha256", $secret, true), 0, SODIUM_CRYPTO_STREAM_KEYBYTES);
+    }
+
     public function getImage(): Image
     {
         $code  = $this->generateCode();
@@ -92,7 +99,7 @@ class CaptchaManager
         $image = $this->generateCaptchaImage($code);
 
         $nonce   = bin2hex(openssl_random_pseudo_bytes(SODIUM_CRYPTO_STREAM_NONCEBYTES / 2));
-        $key     = substr(CHANDLER_ROOT_CONF["security"]["secret"], 0, SODIUM_CRYPTO_STREAM_KEYBYTES);
+        $key     = $this->deriveKey();
         $encHash = sodium_crypto_stream_xor($hash, $nonce, $key);
         $this->session->set("captcha", implode(":", [
             time(),
@@ -126,7 +133,7 @@ class CaptchaManager
             return false;
         }
 
-        $key  = substr(CHANDLER_ROOT_CONF["security"]["secret"], 0, SODIUM_CRYPTO_STREAM_KEYBYTES);
+        $key  = $this->deriveKey();
         $hash = sodium_crypto_stream_xor(base64_decode($encHash), $nonce, $key);
         return hash_equals(hash("crc32b", mb_strtolower($input)), $hash);
     }
