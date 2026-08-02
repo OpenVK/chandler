@@ -13,7 +13,7 @@ function captcha_template(): string
 
     $html = <<<'HTML'
             <div class="captcha">
-                <img src="/captcha.webp" alt="Captcha" style="margin-bottom: 8px; width: 130px;" />
+                <img src="/commitcaptcha/captcha.webp" alt="Captcha" style="margin-bottom: 8px; width: 130px;" />
                 <br/>
                 <input type="text" name="captcha" placeholder="Enter 8 characters" />
             </div>

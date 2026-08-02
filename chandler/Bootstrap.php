@@ -178,7 +178,7 @@ class Bootstrap
 
         $router = Chandler\MVC\Routing\Router::i();
         $router->setExtensionPath("Chandler", __DIR__);
-        $router->push(null, "/captcha.webp", "Chandler", "Captcha", "captcha", []);
+        $router->push(null, "/commitcaptcha/captcha.webp", "Chandler", "Captcha", "captcha", []);
     }
 
     /**
