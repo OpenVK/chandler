@@ -2,3 +2,4 @@
 *.* text eol=lf
 
 *.dat binary
+*.ttf binary
