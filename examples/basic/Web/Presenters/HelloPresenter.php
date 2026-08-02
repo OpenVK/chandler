@@ -56,11 +56,11 @@ final class HelloPresenter extends SimplePresenter
      * Corresponds to route: GET /hello/{text}
      * Template:              Web/Presenters/templates/Hello/Greet.latte
      *
-     * @param string $name  Captured from the {text} placeholder in the URL.
-     *                      Type hinting works because the router passes
-     *                      numeric values as int, everything else as string.
+     * @param string|int $name  Captured from the {text} placeholder in the URL.
+     *                          Type hinting works because the router passes
+     *                          numeric values as int, everything else as string.
      */
-    public function renderGreet(string $name): void
+    public function renderGreet(int|string $name): void
     {
         $this->template->name  = $name;
         $this->template->title = "Hello, $name";
