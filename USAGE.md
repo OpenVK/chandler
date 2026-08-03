@@ -170,11 +170,6 @@ final class HelloPresenter extends SimplePresenter
 
 Templates go in `Web/Presenters/templates/{Presenter}/{Action}.latte`.
 
-## CLI commands
-
-Place commands in `CLI/` and register with `#[AsCommand]` attribute.
-See `vendor/openvk/chandler/CLI/` for examples.
-
 ## Reference
 
 | What | Where |
@@ -185,7 +180,6 @@ See `vendor/openvk/chandler/CLI/` for examples.
 | DI config | `Web/di.yml` |
 | Presenters | `Web/Presenters/` |
 | Templates | `Web/Presenters/templates/` |
-| CLI commands | `CLI/` |
 | Init script | `init.php` (optional) |
 | DB schema | `install/init-db.sql` |
 | Nginx ref | `install/nginx.conf` |

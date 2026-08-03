@@ -1,8 +1,13 @@
 # Chandler
 
-PHP 8.2+ web framework powering [OpenVK](https://github.com/openvk/openvk).
+Chandler is a PHP 8.2+ web framework powering [OpenVK](https://github.com/openvk/openvk).
 
 Chandler provides the foundation — routing, ORM, templating, auth, sessions, email, and captcha — while apps register themselves as builtin extensions and supply the actual pages.
+
+> [!IMPORTANT]
+> After 0.1.0 update, site administrators do not need to install Chandler separately. It is now installed through `composer`.
+> 
+> If you were using Chandler before this update, you will have to migrate. In case of OpenVK, please refer to [this Pull Request](https://github.com/OpenVK/openvk/pull/1718).
 
 ## Features
 
@@ -33,33 +38,16 @@ examples/basic/
 cd examples/basic && php -S 127.0.0.1:8080 -t htdocs htdocs/index.php
 ```
 
-## How an app is structured
+## How to develop an app
 
-An app is a directory with a `bootstrap.php` that calls `ExtensionManager::registerBuiltin()`. The framework then:
-
-1. Defines `{APPNAME}_ROOT` and `{APPNAME}_ROOT_CONF` constants
-2. Runs the optional init script
-3. Loads routes from `Web/routes.yml`
-4. Builds a DI container from `Web/di.yml`
-
-```
-myapp/
-├── bootstrap.php           # registerBuiltin("myapp", __DIR__, ...)
-├── init.php                # optional — autoloader, helpers, checks
-├── myapp.yml               # config (accessed via MYAPP_ROOT_CONF)
-├── htdocs/index.php        # optional — web entry point
-└── Web/
-    ├── routes.yml          # route → handler mapping
-    ├── di.yml              # DI service definitions
-    └── Presenters/
-        ├── FoobarPresenter.php
-        └── templates/
-            ├── @layout.latte
-            └── Foobar/...
-```
+Please, refer to [USAGE.md](USAGE.md) for more details.
 
 ## Requirements
 
 - PHP 8.2+
 - ext-sodium, ext-yaml (recommended), ext-mbstring
 - MySQL 8+ / Percona Server / MariaDB
+
+
+# State of this repo
+This product is still in development phase, we are currently writing documentation/tests and API is going to change.
