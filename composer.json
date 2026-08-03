@@ -11,7 +11,7 @@
         "nette/database": "^3.2",
         "swiftmailer/swiftmailer": "^6.2",
         "latte/latte": "^3.1",
-        "firebase/php-jwt": "^6.11",
+        "firebase/php-jwt": "^7.1",
         "symfony/yaml": "^7.3",
         "wildbit/postmark-php": "^7.0",
         "tracy/tracy": "^2.11",
