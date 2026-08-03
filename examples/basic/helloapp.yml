@@ -3,7 +3,7 @@
 # layout: one YAML file with chandler: settings and app-specific keys.
 
 chandler:
-    # Enable the Tracy debug bar and blue-screen error pages.
+    # Enable the Tracy debug bar and detailed error pages.
     # Set to false in production.
     debug: true
 
@@ -13,7 +13,6 @@ chandler:
 
     # ─── Database ───────────────────────────────────────────────────
     # MySQL-compatible database for sessions, ORM entities, and auth.
-    # The connection is lazy — no DB round-trip on cache-hit pages.
     database:
         dsn: "mysql:host=localhost;dbname=helloapp"
         user: "root"
@@ -39,8 +38,9 @@ chandler:
         sessionDuration: 14
 
     # ─── Captcha ────────────────────────────────────────────────────
-    # Built-in WebP captcha. When enabled, /captcha.webp is registered
-    # automatically by Bootstrap. Uses security.secret for encryption.
+    # Built-in WebP captcha. When enabled, /commitcaptcha/captcha.webp
+    # is registered automatically by Bootstrap.
+    # Uses security.secret for encryption.
     captcha:
         enable: false
 
