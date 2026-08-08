@@ -1,11 +1,9 @@
 <?php
 
 declare(strict_types=1);
-require_once(dirname(__FILE__) . "/../vendor/autoload.php");
 use Tracy\Debugger;
 
-define("CHANDLER_VER", "0.0.2", false);
-define("CHANDLER_ROOT", dirname(__FILE__) . "/..", false);
+define("CHANDLER_VER", "0.1.0", false);
 
 /**
  * Bootstrap class, that is called during framework starting phase.
@@ -16,21 +14,31 @@ define("CHANDLER_ROOT", dirname(__FILE__) . "/..", false);
  */
 class Bootstrap
 {
+    private string $projectRoot;
+    private bool $skipExtensions;
+    private ?string $configFile;
+
+    public function __construct(?string $projectRoot = null, bool $skipExtensions = false, ?string $configFile = null)
+    {
+        $this->projectRoot    = $projectRoot ?? dirname(__DIR__);
+        $this->skipExtensions = $skipExtensions;
+        $this->configFile     = $configFile;
+    }
+
     private function ensureDirectoriesCreated(): void
     {
         function makeDir($path)
         {
             return is_dir($path) || mkdir($path);
-
         }
 
-        makeDir(__DIR__ . "/../logs");
-        makeDir(__DIR__ . "/../tmp");
-        makeDir(__DIR__ . "/../tmp/cache");
-        makeDir(__DIR__ . "/../tmp/cache/database");
-        makeDir(__DIR__ . "/../tmp/cache/templates");
-        makeDir(__DIR__ . "/../tmp/cache/yaml");
-        makeDir(__DIR__ . "/../tmp/plugins-artifacts");
+        makeDir($this->projectRoot . "/logs");
+        makeDir($this->projectRoot . "/tmp");
+        makeDir($this->projectRoot . "/tmp/cache");
+        makeDir($this->projectRoot . "/tmp/cache/database");
+        makeDir($this->projectRoot . "/tmp/cache/templates");
+        makeDir($this->projectRoot . "/tmp/cache/yaml");
+        makeDir($this->projectRoot . "/tmp/plugins-artifacts");
     }
 
     /**
@@ -41,33 +49,39 @@ class Bootstrap
      */
     private function registerDebugger(): void
     {
-        Debugger::enable((CHANDLER_ROOT_CONF["debug"] ? Debugger::DEVELOPMENT : Debugger::PRODUCTION), __DIR__ . "/../logs");
+        Debugger::enable((CHANDLER_ROOT_CONF["debug"] ? Debugger::DEVELOPMENT : Debugger::PRODUCTION), $this->projectRoot . "/logs");
         Debugger::getBar()->addPanel(new Chandler\Debug\DatabasePanel());
     }
 
     private function loadConfig(): void
     {
-        if (!file_exists($conf = CHANDLER_ROOT . "/chandler.yml")) {
-            if (!file_exists($conf = CHANDLER_ROOT . "/../chandler.yml")) {
-                if (!file_exists($conf = "/etc/chandler.d/chandler.yml")) {
-                    exit("Configuration file not found... Have you forgotten to rename it?");
+        if ($this->configFile) {
+            if (!file_exists($this->configFile)) {
+                exit("Configuration file not found: $this->configFile");
+            }
+            $conf = chandler_parse_yaml($this->configFile);
+        } else {
+            $searchPaths = [
+                $this->projectRoot . "/chandler.yml",
+                $this->projectRoot . "/../chandler.yml",
+                "/etc/chandler.d/chandler.yml",
+            ];
+
+            $conf = null;
+            foreach ($searchPaths as $path) {
+                if (file_exists($path)) {
+                    $conf = chandler_parse_yaml($path);
+                    break;
                 }
+            }
+
+            if (!$conf) {
+                exit("Configuration file not found... Have you forgotten to rename it?");
             }
         }
 
-        define("CHANDLER_ROOT_CONF", chandler_parse_yaml($conf)["chandler"]);
-    }
-
-    /**
-     * Loads procedural APIs.
-     *
-     * @internal
-     * @return void
-     */
-    private function registerFunctions(): void
-    {
-        foreach (glob(CHANDLER_ROOT . "/chandler/procedural/*.php") as $procDef) {
-            require $procDef;
+        if (!defined("CHANDLER_ROOT_CONF")) {
+            define("CHANDLER_ROOT_CONF", $conf["chandler"] ?? $conf);
         }
     }
 
@@ -84,7 +98,7 @@ class Bootstrap
                 return;
             }
 
-            require_once(str_replace("\\", "/", str_replace("Chandler\\", CHANDLER_ROOT . "/chandler/", $class)) . ".php");
+            require_once(str_replace("\\", "/", str_replace("Chandler\\", $this->projectRoot . "/chandler/", $class)) . ".php");
         }, true, true);
     }
 
@@ -115,7 +129,7 @@ class Bootstrap
      */
     private function setupGeoIP(): void
     {
-        geoip_setup_custom_directory(CHANDLER_ROOT . "/3rdparty/maxmind/");
+        geoip_setup_custom_directory($this->projectRoot . "/3rdparty/maxmind/");
     }
 
     /**
@@ -153,6 +167,21 @@ class Bootstrap
     }
 
     /**
+     * Registers built-in captcha routes if captcha is enabled in config.
+     */
+    private function initCaptcha(): void
+    {
+        $conf = CHANDLER_ROOT_CONF["captcha"] ?? [];
+        if (!($conf["enable"] ?? true)) {
+            return;
+        }
+
+        $router = Chandler\MVC\Routing\Router::i();
+        $router->setExtensionPath("Chandler", __DIR__);
+        $router->push(null, "/commitcaptcha/captcha.webp", "Chandler", "Captcha", "captcha", []);
+    }
+
+    /**
      * Starts framework.
      *
      * @internal
@@ -160,12 +189,21 @@ class Bootstrap
      */
     public function ignite(bool $headless = false): void
     {
+        if (!defined("CHANDLER_ROOT")) {
+            define("CHANDLER_ROOT", $this->projectRoot, false);
+        }
+
+        chandler_init_yaml_cache();
+
         $this->ensureDirectoriesCreated();
-        $this->registerFunctions();
-        $this->registerAutoloaders();
         $this->loadConfig();
         $this->registerDebugger();
-        $this->igniteExtensions();
+
+        $this->initCaptcha();
+
+        if (!$this->skipExtensions) {
+            $this->igniteExtensions();
+        }
 
         if (!$headless) {
             header("Referrer-Policy: strict-origin-when-cross-origin");
@@ -175,5 +213,3 @@ class Bootstrap
         }
     }
 }
-
-return new Bootstrap();

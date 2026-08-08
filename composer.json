@@ -1,4 +1,5 @@
 {
+    "name": "openvk/chandler",
     "scripts": {
         "fix": "php-cs-fixer fix",
         "lint": "php-cs-fixer fix --dry-run --diff --verbose"
@@ -10,7 +11,7 @@
         "nette/database": "^3.2",
         "swiftmailer/swiftmailer": "^6.2",
         "latte/latte": "^3.1",
-        "firebase/php-jwt": "^6.11",
+        "firebase/php-jwt": "^7.1",
         "symfony/yaml": "^7.3",
         "wildbit/postmark-php": "^7.0",
         "tracy/tracy": "^2.11",
@@ -18,6 +19,22 @@
     },
     "suggest": {
         "ext-yaml": "for faster yaml parsing"
+    },
+    "autoload": {
+        "psr-4": {
+            "Chandler\\": "chandler/"
+        },
+        "classmap": [
+            "chandler/Bootstrap.php"
+        ],
+        "files": [
+            "chandler/procedural/yaml.php",
+            "chandler/procedural/panic.php",
+            "chandler/procedural/db_busy.php",
+            "chandler/procedural/mimes.php",
+            "chandler/procedural/escape_url.php",
+            "chandler/procedural/captcha.php"
+        ]
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.90"

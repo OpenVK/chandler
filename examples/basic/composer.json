@@ -1,0 +1,21 @@
+{
+    "name": "helloapp/basic",
+    "description": "Minimal example app built on Chandler",
+    "type": "project",
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../.."
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "openvk/chandler": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "helloapp\\": ""
+        }
+    }
+}

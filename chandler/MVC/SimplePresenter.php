@@ -44,7 +44,7 @@ abstract class SimplePresenter implements IPresenter
             header("HTTP/1.0 $code $desc");
 
             $ext = explode("\\", get_class($this))[0];
-            $path = CHANDLER_EXTENSIONS_ENABLED . "/$ext/Web/Presenters/templates/" . $this->errorTemplate . ".latte";
+            $path = \Chandler\MVC\Routing\Router::getExtensionPath($ext) . "/Web/Presenters/templates/" . $this->errorTemplate . ".latte";
 
             $latte = $this->getTemplatingEngine();
             $latte->render($path, array_merge_recursive([

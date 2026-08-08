@@ -4,8 +4,24 @@ use Symfony\Component\Yaml\Yaml;
 use Nette\Caching\Storages\FileStorage;
 use Nette\Caching\Cache;
 
-$GLOBALS["ymlCaFS"] = new FileStorage(CHANDLER_ROOT . "/tmp/cache/yaml");
-$GLOBALS["ymlCa"]   = new Cache($GLOBALS["ymlCaFS"]);
+/**
+ * Initializes YAML cache storage.
+ * Called lazily when CHANDLER_ROOT is defined.
+ */
+function chandler_init_yaml_cache(): void
+{
+    if (isset($GLOBALS["ymlCa"])) {
+        return;
+    }
+
+    $cacheDir = CHANDLER_ROOT . "/tmp/cache/yaml";
+    if (!is_dir($cacheDir)) {
+        mkdir($cacheDir, 0o777, true);
+    }
+
+    $GLOBALS["ymlCaFS"] = new FileStorage($cacheDir);
+    $GLOBALS["ymlCa"]   = new Cache($GLOBALS["ymlCaFS"]);
+}
 
 /**
  * Parses YAML from file.
@@ -19,6 +35,8 @@ $GLOBALS["ymlCa"]   = new Cache($GLOBALS["ymlCaFS"]);
  */
 function chandler_parse_yaml(string $filename): array
 {
+    chandler_init_yaml_cache();
+
     $cache   = $GLOBALS["ymlCa"];
     $id      = sha1($filename);
 

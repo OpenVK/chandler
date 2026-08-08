@@ -1,17 +1,10 @@
 /vendor
 /chandler.yml
 
-/extensions/available/*
-/extensions/enabled/*
-!/extensions/available/.gitkeep
-!/extensions/enabled/.gitkeep
-
 /tmp
 /tmp/events.bin
 
-/htdocs/*
-!/htdocs/.htaccess
-!/htdocs/index.php
+/extensions
 
 /logs
 

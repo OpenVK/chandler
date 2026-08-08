@@ -1,0 +1,21 @@
+# ─── Route definitions ──────────────────────────────────────────────
+#
+# Each route maps a URL pattern to a Presenter method.
+# The handler format is:  PresenterName->methodName
+# which invokes render{MethodName}() on {PresenterName}Presenter.
+#
+# URL patterns support type aliases:
+#   {num}  → matches digits (-?\d++)
+#   {text} → matches alphanumeric ([A-z0-9]++)
+#   {slug} → matches words with spaces, Cyrillic, etc.
+#   {?name} → custom placeholder, regex defined in placeholders:
+#
+# Since helloapp is the rootApp, routes are NOT prefixed with
+# /helloapp/. Non-root apps would have all routes under /appname/.
+
+routes:
+    - url: "/"
+      handler: "Hello->index"
+
+    - url: "/hello/{text}"
+      handler: "Hello->greet"

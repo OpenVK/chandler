@@ -23,7 +23,7 @@ class ScriptNode extends \Latte\Compiler\Nodes\StatementNode
                 %line
                 $__domain   = $this->global->chandlerDomain;
                 $__file     = %node;
-                $__realpath = CHANDLER_EXTENSIONS_ENABLED . "/$__domain/Web/static/$__file";
+                $__realpath = \Chandler\MVC\Routing\Router::getExtensionPath($__domain) . "/Web/static/$__file";
 
                 if (file_exists($__realpath)) {
                     $__hash = "sha384-" . base64_encode(hash_file("sha384", $__realpath, true));
