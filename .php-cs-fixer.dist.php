@@ -2,6 +2,7 @@
 
 $finder = (new PhpCsFixer\Finder())
     ->in(__DIR__)
+    ->exclude(['tmp', 'examples/*/tmp'])
 ;
 
 return (new PhpCsFixer\Config())
