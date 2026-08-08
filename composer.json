@@ -1,5 +1,11 @@
 {
     "name": "openvk/chandler",
+    "description": "Chandler is a PHP 8.2+ web framework powering OpenVK.",
+    "keywords": ["framework"],
+    "license": "ISC",
+    "support": {
+        "source": "https://github.com/OpenVK/chandler"
+    },
     "scripts": {
         "fix": "php-cs-fixer fix",
         "lint": "php-cs-fixer fix --dry-run --diff --verbose"
