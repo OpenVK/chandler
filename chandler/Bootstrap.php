@@ -64,6 +64,36 @@ class Bootstrap
                 Debugger::$errorTemplate = $path;
             }
         }
+
+        $prevExceptionHandler = set_exception_handler(function (\Throwable $e) use (&$prevExceptionHandler): void {
+            $router    = Chandler\MVC\Routing\Router::i();
+            $presenter = $router->getCurrentPresenter();
+            $route     = $router->getCurrentRoute();
+
+            $output = null;
+            if ($presenter && method_exists($presenter, "onServerError")) {
+                $output = $presenter->onServerError($e);
+            }
+
+            if (!is_string($output)) {
+                $output = $router->handleServerError($e, $route, $presenter);
+            }
+
+            if (is_string($output)) {
+                if (ob_get_level() > 0) {
+                    ob_clean();
+                }
+                echo $output;
+                exit;
+            }
+
+            if (is_callable($prevExceptionHandler)) {
+                $prevExceptionHandler($e);
+            } else {
+                \Tracy\Debugger::exceptionHandler($e);
+                exit(255);
+            }
+        });
     }
 
     private function loadConfig(): void
@@ -176,7 +206,7 @@ class Bootstrap
         $parts = explode('?', $url, 2);
         $path  = $parts[0];
         $query = isset($parts[1]) && $parts[1] !== '' ? "?{$parts[1]}" : '';
-        
+
         $normalized = preg_replace('#/{2,}#', '/', $path);
         if ($normalized !== '/') {
             $normalized = rtrim($normalized, '/');

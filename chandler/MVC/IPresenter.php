@@ -16,4 +16,5 @@ interface IPresenter
     public function onAfterRender(): void;
     public function onStop(): void;
     public function onDestruction(): void;
+    public function onServerError(\Throwable $e): ?string;
 }
