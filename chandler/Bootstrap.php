@@ -161,9 +161,32 @@ class Bootstrap
         $router = Chandler\MVC\Routing\Router::i();
         if (($output = $router->execute($url, null)) !== null) {
             echo $output;
-        } else {
-            chandler_http_panic(404, "Not Found", "No routes for $url.");
+            return;
         }
+
+        $parts = explode('?', $url, 2);
+        $path  = $parts[0];
+        $query = isset($parts[1]) && $parts[1] !== '' ? "?{$parts[1]}" : '';
+        
+        $normalized = preg_replace('#/{2,}#', '/', $path);
+        if ($normalized !== '/') {
+            $normalized = rtrim($normalized, '/');
+        }
+
+        $hasRoute = $router->getMatchingRoute($normalized) !== null;
+
+        if (!$hasRoute && $normalized !== '/') {
+            if ($router->getMatchingRoute($normalized . '/') !== null) {
+                $normalized .= '/';
+                $hasRoute    = true;
+            }
+        }
+
+        if ($normalized !== $path && $hasRoute) {
+            header("Location: {$normalized}{$query}", true, 307);
+            exit;
+        }
+        chandler_http_panic(404, "Not Found", "No routes for $url.");
 
         ob_flush();
         ob_end_flush();
