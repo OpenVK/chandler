@@ -11,6 +11,15 @@ chandler:
     # "helloapp" matches the first argument of registerBuiltin().
     rootApp: "helloapp"
 
+    # ─── Custom Error Pages (optional) ──────────────────────────────
+    # Customize client (4xx) and server (5xx) error pages.
+    # Paths can be relative to rootApp (or project root), or absolute.
+    # If omitted, Chandler falls back to built-in panic/Tracy pages.
+    #errorPages:
+    #    client: "Web/Presenters/templates/@error-client.latte"
+    #    server: "Web/Presenters/templates/@error-server.phtml"
+
+
     # ─── Database ───────────────────────────────────────────────────
     # MySQL-compatible database for sessions, ORM entities, and auth.
     database:

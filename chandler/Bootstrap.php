@@ -55,6 +55,15 @@ class Bootstrap
     {
         Debugger::enable((CHANDLER_ROOT_CONF["debug"] ? Debugger::DEVELOPMENT : Debugger::PRODUCTION), $this->projectRoot . "/logs");
         Debugger::getBar()->addPanel(new Chandler\Debug\DatabasePanel());
+
+        $errorPages = CHANDLER_ROOT_CONF["errorPages"] ?? null;
+        $serverTemplate = is_array($errorPages) ? ($errorPages["server"] ?? null) : null;
+        if (is_string($serverTemplate)) {
+            $path = $this->resolveErrorPagePath($serverTemplate);
+            if ($path !== null && file_exists($path)) {
+                Debugger::$errorTemplate = $path;
+            }
+        }
     }
 
     private function loadConfig(): void
@@ -186,7 +195,7 @@ class Bootstrap
             header("Location: {$normalized}{$query}", true, 307);
             exit;
         }
-        chandler_http_panic(404, "Not Found", "No routes for $url.");
+        $this->renderErrorPage(404, "Not Found", "No routes for $url.");
 
         ob_flush();
         ob_end_flush();
@@ -206,6 +215,90 @@ class Bootstrap
         $router = Chandler\MVC\Routing\Router::i();
         $router->setExtensionPath("Chandler", __DIR__);
         $router->push(null, "/commitcaptcha/captcha.webp", "Chandler", "Captcha", "captcha", []);
+    }
+
+    /**
+     * Resolves an error page template path.
+     * Absolute paths (starting with /) are checked as-is.
+     * Relative paths are resolved against rootApp extension directory or project root.
+     *
+     * @param string $template
+     * @return string|null
+     */
+    private function resolveErrorPagePath(string $template): ?string
+    {
+        if ($template === "") {
+            return null;
+        }
+
+        if ($template[0] === "/") {
+            return file_exists($template) ? $template : null;
+        }
+
+        $rootApp = CHANDLER_ROOT_CONF["rootApp"] ?? null;
+        if (is_string($rootApp) && $rootApp !== "") {
+            $base = Chandler\MVC\Routing\Router::getExtensionPath($rootApp);
+            $resolved = "$base/$template";
+            if (file_exists($resolved)) {
+                return $resolved;
+            }
+        }
+
+        $resolvedRoot = $this->projectRoot . "/$template";
+        if (file_exists($resolvedRoot)) {
+            return $resolvedRoot;
+        }
+
+        return null;
+    }
+
+    /**
+     * Renders a client error page using custom template if configured,
+     * or falls back to chandler_http_panic().
+     *
+     * @param int $code HTTP error code
+     * @param string $desc HTTP error description
+     * @param string $msg Detailed error message
+     * @return void
+     */
+    private function renderErrorPage(int $code, string $desc, string $msg): void
+    {
+        $errorPages = CHANDLER_ROOT_CONF["errorPages"] ?? null;
+        $clientTemplate = is_array($errorPages) ? ($errorPages["client"] ?? null) : null;
+        if (is_string($clientTemplate)) {
+            $path = $this->resolveErrorPagePath($clientTemplate);
+            if ($path !== null && file_exists($path)) {
+                try {
+                    if (ob_get_level() > 0) {
+                        ob_clean();
+                    }
+                    header("HTTP/1.0 $code $desc");
+                    $latte = new \Latte\Engine();
+                    $cacheDir = $this->projectRoot . "/tmp/cache/templates";
+                    if (is_dir($cacheDir)) {
+                        $latte->setTempDirectory($cacheDir);
+                    }
+                    if (class_exists(\Latte\Bridges\Tracy\TracyExtension::class)) {
+                        $latte->addExtension(new \Latte\Bridges\Tracy\TracyExtension());
+                    }
+                    if (class_exists(\Latte\Essential\RawPhpExtension::class)) {
+                        $latte->addExtension(new \Latte\Essential\RawPhpExtension());
+                    }
+
+                    $latte->render($path, [
+                        "code"    => $code,
+                        "desc"    => $desc,
+                        "msg"     => $msg,
+                        "message" => $msg,
+                    ]);
+                    exit;
+                } catch (\Throwable $e) {
+                    Debugger::log($e, Debugger::EXCEPTION);
+                }
+            }
+        }
+
+        chandler_http_panic($code, $desc, $msg);
     }
 
     /**

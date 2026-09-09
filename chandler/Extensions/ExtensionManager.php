@@ -21,10 +21,12 @@ final class ExtensionManager
      */
     public static function registerBuiltin(string $name, string $path, array $manifest = []): void
     {
+        $path = rtrim($path, "/");
         self::$builtinExtensions[$name] = [
-            "path"     => rtrim($path, "/"),
+            "path"     => $path,
             "manifest" => $manifest,
         ];
+        Router::setExtensionPath($name, $path);
     }
 
     private function __construct()

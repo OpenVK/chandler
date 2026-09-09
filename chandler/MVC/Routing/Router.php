@@ -48,7 +48,8 @@ final class Router
             return self::$extensionPaths[$namespace];
         }
 
-        return CHANDLER_ROOT . "/extensions/enabled/$namespace";
+        $root = defined("CHANDLER_ROOT") ? constant("CHANDLER_ROOT") : dirname(__DIR__, 2);
+        return "$root/extensions/enabled/$namespace";
     }
 
     private function computeRegExp(string $route, array $customAliases = [], ?string $prefix = null): string
