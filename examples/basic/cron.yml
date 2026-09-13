@@ -1,0 +1,9 @@
+jobs:
+    # Runs every 60 seconds (or with string syntax like "1m", "10m", "1h")
+    - class: helloapp\Tasks\DemoTask
+      method: run
+      interval: 60
+
+    # Interval omitted -> runs every time cron is executed
+    - class: helloapp\Tasks\DemoTask
+      method: ping

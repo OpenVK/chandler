@@ -170,6 +170,61 @@ final class HelloPresenter extends SimplePresenter
 
 Templates go in `Web/Presenters/templates/{Presenter}/{Action}.latte`.
 
+## Scheduled Tasks (Cron)
+
+Chandler provides a built-in runner for scheduled background tasks. Tasks are defined in `cron.yml` and executed via `cron.php` from your system crontab.
+
+### 1. Define tasks in `cron.yml`
+
+Create `cron.yml` in your application root or extension directory:
+
+```yaml
+jobs:
+    # Runs every 3600 seconds (1 hour)
+    - class: myapp\Tasks\CleanupTask
+      method: run
+      interval: 3600 # Or string: "1h", "10m", "30s"
+
+    # Runs every time cron.php is invoked (e.g. every minute)
+    - class: myapp\Tasks\HeartbeatTask
+      method: ping
+```
+
+If `interval` is omitted or empty, the task runs every time `cron.php` is called. Task classes can optionally implement `Chandler\Cron\JobInterface`.
+
+### 2. Entry point (`cron.php`)
+
+Create a `cron.php` in your application root:
+
+```php
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+require __DIR__ . "/bootstrap.php";
+$bootstrap = new Bootstrap(__DIR__, false, __DIR__ . "/myapp.yml");
+$bootstrap->ignite(true);
+
+exit(\Chandler\Cron\CronRunner::run($argv));
+```
+
+### 3. Crontab
+
+Configure your system crontab (`crontab -e`) to trigger every minute:
+
+```bash
+* * * * * cd /path/to/myapp && php cron.php >> logs/cron.log 2>&1
+```
+
+### CLI options
+
+- `php cron.php` — Run all tasks that are due
+- `php cron.php --force` — Force execution of all tasks regardless of interval
+- `php cron.php --dry-run` — Preview tasks that are due without executing
+- `php cron.php --list` — List all registered tasks and their status
+- `php cron.php --task=ClassName` — Run a specific task
+
 ## Reference
 
 | What | Where |
@@ -178,6 +233,8 @@ Templates go in `Web/Presenters/templates/{Presenter}/{Action}.latte`.
 | Entry point | `htdocs/index.php` |
 | Routes | `Web/routes.yml` |
 | DI config | `Web/di.yml` |
+| Cron config | `cron.yml` |
+| Cron entry point | `cron.php` |
 | Presenters | `Web/Presenters/` |
 | Templates | `Web/Presenters/templates/` |
 | Init script | `init.php` (optional) |
@@ -185,3 +242,4 @@ Templates go in `Web/Presenters/templates/{Presenter}/{Action}.latte`.
 | Nginx ref | `install/nginx.conf` |
 | Logs | `logs/` |
 | Cache | `tmp/cache/` |
+
