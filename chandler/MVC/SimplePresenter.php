@@ -137,16 +137,16 @@ abstract class SimplePresenter implements IPresenter
         // Whitelist of domains to which redirects are allowed
         $allowedHosts = [];
 
-        if (defined("OPENVK_ROOT_CONF")) {
-            // Instance domains (including mirrors)
-            foreach (OPENVK_ROOT_CONF["openvk"]["mirrors"] ?? [] as $mirror) {
-                $allowedHosts[] = $this->normalizeHost((string) $mirror);
-            }
+        // The request's own host is always a valid redirect target, so
+        // redirects work out of the box even without any configuration.
+        $currentHost = $_SERVER["HTTP_HOST"] ?? $_SERVER["SERVER_NAME"] ?? "";
+        if ($currentHost !== "") {
+            $allowedHosts[] = $this->normalizeHost($currentHost);
+        }
 
-            // External trusted domains (specified in the config)
-            foreach (OPENVK_ROOT_CONF["openvk"]["trustedRedirectHosts"] ?? [] as $trusted) {
-                $allowedHosts[] = $this->normalizeHost((string) $trusted);
-            }
+        // Trusted domains (specified in the config)
+        foreach (CHANDLER_ROOT_CONF["security"]["trustedRedirectHosts"] ?? [] as $trusted) {
+            $allowedHosts[] = $this->normalizeHost((string) $trusted);
         }
 
         return in_array($host, $allowedHosts, true);
