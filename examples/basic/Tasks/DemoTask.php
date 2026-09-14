@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace helloapp\Tasks;
 
-use Chandler\Cron\JobInterface;
-
-final class DemoTask implements JobInterface
+final class DemoTask
 {
     public function run(): void
     {

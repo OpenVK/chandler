@@ -15,9 +15,10 @@ final class CronRunner
      * Entry point for CLI cron scripts.
      *
      * @param array<int, string>|null $argv CLI arguments array ($GLOBALS['argv'])
+     * @param Scheduler|null $scheduler Custom scheduler instance (defaults to Scheduler::i())
      * @return int Exit code (0 on success, 1 on failure)
      */
-    public static function run(?array $argv = null): int
+    public static function run(?array $argv = null, ?Scheduler $scheduler = null): int
     {
         $argv ??= $GLOBALS["argv"] ?? [];
         $options = self::parseArgs($argv);
@@ -27,65 +28,61 @@ final class CronRunner
             return 0;
         }
 
-        $manager = CronManager::i();
+        $scheduler ??= Scheduler::i();
+        $scheduler->loadFromExtensions();
 
-        if ($options["config"] !== null) {
-            $manager->loadJobs($options["config"]);
-        } else {
-            $manager->loadJobs();
-        }
-
-        $jobs = $manager->getJobs();
+        $tasks = $scheduler->getTasks();
 
         if ($options["list"]) {
-            self::printList($jobs, $manager->getStateStore());
+            self::printList($tasks, $scheduler->getStateStore());
             return 0;
         }
 
-        if (empty($jobs)) {
-            self::writeln(self::color("yellow", "[CRON] No cron jobs configured or discovered."));
+        if (empty($tasks)) {
+            self::writeln(self::color("yellow", "[CRON] No cron tasks registered or discovered."));
             return 0;
         }
 
         // Filter by specific task if specified
-        $targetJobs = [];
+        $targetTasks = [];
         if ($options["task"] !== null) {
-            $job = $manager->getJob($options["task"]);
-            if (!$job) {
-                self::writeln(self::color("red", "[CRON ERROR] Job '{$options["task"]}' not found in configuration."));
+            $task = $scheduler->getTask($options["task"]);
+            if (!$task) {
+                self::writeln(self::color("red", "[CRON ERROR] Task '{$options["task"]}' not found in configuration."));
                 return 1;
             }
-            $targetJobs = [$job];
-            // When targeting a single task explicitly, force execution unless explicitly asked not to
+            $targetTasks = [$task];
+            // When targeting a single task explicitly, force execution unless dryRun
             $options["force"] = true;
         } else {
-            $targetJobs = array_values($jobs);
+            $targetTasks = array_values($tasks);
         }
 
-        $dateStr = date("Y-m-d H:i:s");
-        $totalCount = count($targetJobs);
-        $modeDesc = $options["dryRun"] ? " (DRY-RUN)" : ($options["force"] ? " (FORCE)" : "");
+        $dateStr    = date("Y-m-d H:i:s");
+        $totalCount = count($targetTasks);
+        $modeDesc   = $options["dryRun"] ? " (DRY-RUN)" : ($options["force"] ? " (FORCE)" : "");
 
-        self::writeln(self::color("cyan", "[$dateStr] Starting Chandler Cron: {$totalCount} job(s) registered{$modeDesc}."));
+        self::writeln(self::color("cyan", "[$dateStr] Starting Chandler Cron: {$totalCount} task(s) registered{$modeDesc}."));
 
-        $executed = 0;
-        $skipped  = 0;
-        $failed   = 0;
+        $executed  = 0;
+        $skipped   = 0;
+        $locked    = 0;
+        $failed    = 0;
         $totalTime = 0.0;
 
-        foreach ($targetJobs as $job) {
-            $result = $manager->executeJob($job, $options["force"], $options["dryRun"]);
+        foreach ($targetTasks as $task) {
+            $result = $scheduler->executeTask($task, $options["force"], $options["dryRun"]);
             $totalTime += $result["duration"];
 
-            $jobDesc = $job->getClass() . "::" . $job->getMethod();
+            $targetDesc = self::getTaskTargetDesc($task);
             $durationStr = sprintf("%.3fs", $result["duration"]);
 
             switch ($result["status"]) {
                 case "success":
                     $executed++;
                     self::writeln(
-                        self::color("green", "  ✔ [OK]   ") .
-                        $jobDesc .
+                        self::color("green", "  ✔ [OK]    ") .
+                        $targetDesc .
                         self::color("gray", " ({$durationStr})")
                     );
                     break;
@@ -93,8 +90,17 @@ final class CronRunner
                 case "skipped":
                     $skipped++;
                     self::writeln(
-                        self::color("yellow", "  - [SKIP] ") .
-                        $jobDesc .
+                        self::color("yellow", "  - [SKIP]  ") .
+                        $targetDesc .
+                        self::color("gray", " - {$result["message"]}")
+                    );
+                    break;
+
+                case "locked":
+                    $locked++;
+                    self::writeln(
+                        self::color("yellow", "  🔒 [LOCK] ") .
+                        $targetDesc .
                         self::color("gray", " - {$result["message"]}")
                     );
                     break;
@@ -102,8 +108,8 @@ final class CronRunner
                 case "dry-run":
                     $executed++;
                     self::writeln(
-                        self::color("cyan", "  ? [DUE]  ") .
-                        $jobDesc .
+                        self::color("cyan", "  ? [DUE]   ") .
+                        $targetDesc .
                         self::color("gray", " - will run")
                     );
                     break;
@@ -111,8 +117,8 @@ final class CronRunner
                 case "error":
                     $failed++;
                     self::writeln(
-                        self::color("red", "  ✖ [FAIL] ") .
-                        $jobDesc .
+                        self::color("red", "  ✖ [FAIL]  ") .
+                        $targetDesc .
                         self::color("red", " ({$durationStr}): {$result["message"]}")
                     );
                     break;
@@ -123,17 +129,28 @@ final class CronRunner
         $summaryTime = sprintf("%.3fs", $totalTime);
 
         if ($failed > 0) {
-            self::writeln(self::color("red", "[$summaryDate] Finished with errors. Executed: $executed, Skipped: $skipped, Failed: $failed (Time: {$summaryTime})"));
+            self::writeln(self::color("red", "[$summaryDate] Finished with errors. Executed: $executed, Skipped: $skipped, Locked: $locked, Failed: $failed (Time: {$summaryTime})"));
             return 1;
         }
 
-        self::writeln(self::color("green", "[$summaryDate] Finished successfully. Executed: $executed, Skipped: $skipped, Failed: $failed (Time: {$summaryTime})"));
+        self::writeln(self::color("green", "[$summaryDate] Finished successfully. Executed: $executed, Skipped: $skipped, Locked: $locked, Failed: $failed (Time: {$summaryTime})"));
         return 0;
+    }
+
+    private static function getTaskTargetDesc(Task $task): string
+    {
+        $name = $task->getName();
+        if ($task->getClass() !== null) {
+            $classMethod = $task->getClass() . "::" . $task->getMethod();
+            return ($name !== $classMethod && $name !== $task->getClass()) ? "{$name} ({$classMethod})" : $classMethod;
+        }
+
+        return $name . " (Closure)";
     }
 
     /**
      * @param array<int, string> $argv
-     * @return array{help: bool, list: bool, force: bool, dryRun: bool, task: ?string, config: ?string}
+     * @return array{help: bool, list: bool, force: bool, dryRun: bool, task: ?string}
      */
     private static function parseArgs(array $argv): array
     {
@@ -143,7 +160,6 @@ final class CronRunner
             "force"  => false,
             "dryRun" => false,
             "task"   => null,
-            "config" => null,
         ];
 
         // Skip script path ($argv[0])
@@ -160,8 +176,6 @@ final class CronRunner
                 $options["dryRun"] = true;
             } elseif (str_starts_with($arg, "--task=")) {
                 $options["task"] = substr($arg, 7);
-            } elseif (str_starts_with($arg, "--config=")) {
-                $options["config"] = substr($arg, 9);
             } elseif (!str_starts_with($arg, "-") && $options["task"] === null) {
                 $options["task"] = $arg;
             }
@@ -171,43 +185,44 @@ final class CronRunner
     }
 
     /**
-     * @param array<string, CronJob> $jobs
+     * @param array<string, Task> $tasks
      */
-    private static function printList(array $jobs, CronStateStore $store): void
+    private static function printList(array $tasks, CronStateStore $store): void
     {
-        $state = $store->loadState();
+        $state   = $store->loadState();
         $isRedis = $store->isUsingRedis() ? "Redis" : "File";
 
-        self::writeln(self::color("cyan", "Chandler Cron registered jobs (State store: {$isRedis}):"));
-        self::writeln(str_repeat("-", 80));
+        self::writeln(self::color("cyan", "Chandler Cron registered tasks (State store: {$isRedis}):"));
+        self::writeln(str_repeat("-", 85));
 
-        if (empty($jobs)) {
-            self::writeln("  No jobs registered.");
+        if (empty($tasks)) {
+            self::writeln("  No tasks registered.");
             return;
         }
 
         printf(
-            "  %-35s %-12s %-20s %-10s\n",
-            "Job (Class::Method)",
-            "Interval",
+            "  %-28s %-18s %-20s %-10s\n",
+            "Task Name/ID",
+            "Schedule",
             "Last Run",
             "Status"
         );
-        self::writeln(str_repeat("-", 80));
+        self::writeln(str_repeat("-", 85));
 
-        foreach ($jobs as $job) {
-            $id = $job->getId();
-            $intervalStr = $job->getInterval() !== null ? ($job->getInterval() . "s") : "every run";
+        foreach ($tasks as $task) {
+            $id          = $task->getId();
+            $displayName = $task->getName();
+            $scheduleStr = $task->getScheduleDescription();
 
-            $jobState = $state[$id] ?? null;
+            $taskState  = $state[$id] ?? null;
             $lastRunStr = "never";
             $statusStr  = "ready";
 
-            if ($jobState !== null) {
-                if (!empty($jobState["last_run"])) {
-                    $lastRunStr = date("Y-m-d H:i:s", (int) $jobState["last_run"]);
+            if ($taskState !== null) {
+                if (!empty($taskState["last_run"])) {
+                    $lastRunStr = date("Y-m-d H:i:s", (int) $taskState["last_run"]);
                 }
-                $statusStr = $jobState["last_status"] ?? "unknown";
+                $statusStr = $taskState["last_status"] ?? "unknown";
             }
 
             $statusColor = match ($statusStr) {
@@ -217,15 +232,15 @@ final class CronRunner
             };
 
             printf(
-                "  %-35s %-12s %-20s %s\n",
-                mb_strimwidth($id, 0, 35, "..."),
-                $intervalStr,
+                "  %-28s %-18s %-20s %s\n",
+                mb_strimwidth($displayName, 0, 28, "..."),
+                mb_strimwidth($scheduleStr, 0, 18, "..."),
                 $lastRunStr,
                 self::color($statusColor, $statusStr)
             );
         }
 
-        self::writeln(str_repeat("-", 80));
+        self::writeln(str_repeat("-", 85));
     }
 
     private static function printHelp(string $scriptName): void
@@ -234,10 +249,9 @@ final class CronRunner
         self::writeln("");
         self::writeln("Options:");
         self::writeln("  --task=<name|class>   Run a specific task (forces execution)");
-        self::writeln("  -f, --force           Force execution of all tasks, ignoring intervals");
+        self::writeln("  -f, --force           Force execution of all tasks, ignoring schedule");
         self::writeln("  -d, --dry-run         Show tasks due for execution without running them");
         self::writeln("  -l, --list            List all registered tasks and their status");
-        self::writeln("  --config=<path>       Specify custom cron.yml config file");
         self::writeln("  -h, --help            Show this help message");
     }
 
