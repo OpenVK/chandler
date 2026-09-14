@@ -273,46 +273,56 @@ final class Task
     }
 
     /**
-     * Checks whether this task is due for execution at the given timestamp.
+     * Checks whether this task is due for execution and returns the reason if skipped.
+     *
+     * @return array{due: bool, reason: string}
      */
-    public function isDue(int $currentTime, ?int $lastRun): bool
+    public function checkDue(int $currentTime, ?int $lastRun): array
     {
         if ($this->whenCondition !== null) {
             $when = is_callable($this->whenCondition) ? ($this->whenCondition)() : $this->whenCondition;
             if (!$when) {
-                return false;
+                return ["due" => false, "reason" => "condition not met"];
             }
         }
 
         if ($this->skipCondition !== null) {
             $skip = is_callable($this->skipCondition) ? ($this->skipCondition)() : $this->skipCondition;
             if ($skip) {
-                return false;
+                return ["due" => false, "reason" => "skip condition met"];
             }
         }
 
         if ($this->cronExpression !== null) {
             if (!self::matchesCron($this->cronExpression, $currentTime)) {
-                return false;
+                return ["due" => false, "reason" => "cron schedule not matching"];
             }
 
             // Ensure task does not run more than once within the matching minute
             if ($lastRun !== null && ($currentTime - $lastRun) < 60) {
-                return false;
+                return ["due" => false, "reason" => "already ran in this minute"];
             }
 
-            return true;
+            return ["due" => true, "reason" => ""];
         }
 
-        if ($this->interval === null || $this->interval <= 0) {
-            return true;
+        if ($this->interval !== null && $this->interval > 0 && $lastRun !== null && $lastRun > 0) {
+            $elapsed = $currentTime - $lastRun;
+            if ($elapsed < $this->interval) {
+                $remaining = $this->interval - $elapsed;
+                return ["due" => false, "reason" => "interval not elapsed, next run in ~{$remaining}s"];
+            }
         }
 
-        if ($lastRun === null || $lastRun <= 0) {
-            return true;
-        }
+        return ["due" => true, "reason" => ""];
+    }
 
-        return ($currentTime - $lastRun) >= $this->interval;
+    /**
+     * Checks whether this task is due for execution at the given timestamp.
+     */
+    public function isDue(int $currentTime, ?int $lastRun): bool
+    {
+        return $this->checkDue($currentTime, $lastRun)["due"];
     }
 
     /**
@@ -325,18 +335,15 @@ final class Task
     {
         $currentTime = time();
         $lastRun     = $stateStore->getLastRun($this->id);
+        $dueCheck    = $this->checkDue($currentTime, $lastRun);
 
-        if (!$force && !$this->isDue($currentTime, $lastRun)) {
-            $remaining = ($lastRun !== null && $this->interval !== null)
-                ? ($this->interval - ($currentTime - $lastRun))
-                : 0;
-
+        if (!$force && !$dueCheck["due"]) {
             return [
                 "task"     => $this,
                 "status"   => "skipped",
                 "duration" => 0.0,
                 "error"    => null,
-                "message"  => "Skipped (interval not elapsed, next run in ~{$remaining}s)",
+                "message"  => "Skipped (" . $dueCheck["reason"] . ")",
             ];
         }
 
