@@ -85,12 +85,14 @@ final class Router
      * @param \Throwable $e
      * @param Route|null $route
      * @param IPresenter|null $presenter
+     * @param string|null $errorCode
      * @return string|null Response if handled, null otherwise
      */
-    public function handleServerError(\Throwable $e, ?Route $route = null, ?IPresenter $presenter = null): ?string
+    public function handleServerError(\Throwable $e, ?Route $route = null, ?IPresenter $presenter = null, ?string $errorCode = null): ?string
     {
+        $errorCode = $errorCode ?? \Chandler\Debug\DebuggerUtils::getErrorCode($e);
         foreach ($this->serverErrorHandlers as $handler) {
-            $response = $handler($e, $route, $presenter);
+            $response = $handler($e, $route, $presenter, $errorCode);
             if (is_string($response)) {
                 return $response;
             }
@@ -241,17 +243,18 @@ final class Router
             if (class_exists(\Tracy\Debugger::class)) {
                 \Tracy\Debugger::log($ex, \Tracy\Debugger::EXCEPTION);
             }
+            $errorCode = \Chandler\Debug\DebuggerUtils::getErrorCode($ex);
 
             $handled = false;
 
-            $result = $presenter->onServerError($ex);
+            $result = $presenter->onServerError($ex, $errorCode);
             if (is_string($result)) {
                 $output  = $result;
                 $handled = true;
             }
 
             if (!$handled) {
-                $result = $this->handleServerError($ex, $this->currentRoute, $presenter);
+                $result = $this->handleServerError($ex, $this->currentRoute, $presenter, $errorCode);
                 if (is_string($result)) {
                     $output  = $result;
                     $handled = true;

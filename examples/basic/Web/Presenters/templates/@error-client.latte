@@ -29,6 +29,7 @@
             
             <h2>HTTP Error {$code} - {$desc}</h2>
             <h3>{$msg}</h3>
+            <p n:if="!empty($errorCode)"><small>Error ID: <code style="font-family:monospace;background:#f0f0f0;padding:2px 5px;border:1px solid #ccc;border-radius:3px;">{$errorCode}</code></small></p>
         </fieldset>
     </div>
 </body>

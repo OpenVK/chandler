@@ -23,7 +23,8 @@ final class DatabaseConnection
             if ($ex->getCode() === "42000") {
                 chandler_db_busy();
             } else {
-                chandler_http_panic(503, "Service Temporarily Unavailable", "Error estabilishing database connection: " . $ex->getMessage());
+                $errorCode = \Chandler\Debug\DebuggerUtils::getErrorCode($ex);
+                chandler_http_panic(503, "Service Temporarily Unavailable", "Error estabilishing database connection: " . $ex->getMessage(), $errorCode);
             }
         }
 

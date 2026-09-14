@@ -38,8 +38,9 @@ abstract class SimplePresenter implements IPresenter
         return $latte;
     }
 
-    protected function throwError(int $code = 400, string $desc = "Bad Request", string $message = ""): void
+    protected function throwError(int $code = 400, string $desc = "Bad Request", string $message = "", ?string $errorCode = null): void
     {
+        $errorCode = $errorCode ?? \Chandler\Debug\DebuggerUtils::getLastErrorCode();
         if (!is_null($this->errorTemplate)) {
             header("HTTP/1.0 $code $desc");
 
@@ -48,13 +49,17 @@ abstract class SimplePresenter implements IPresenter
 
             $latte = $this->getTemplatingEngine();
             $latte->render($path, array_merge_recursive([
-                "code" => $code,
-                "desc" => $desc,
-                "msg" => $message,
+                "code"      => $code,
+                "desc"      => $desc,
+                "msg"       => $message,
+                "message"   => $message,
+                "errorCode" => $errorCode,
+                "errorId"   => $errorCode,
+                "tracyCode" => $errorCode,
             ], $this->getTemplateScope()));
             exit;
         } else {
-            chandler_http_panic($code, $desc, $message);
+            chandler_http_panic($code, $desc, $message, $errorCode);
         }
     }
 
@@ -206,7 +211,7 @@ abstract class SimplePresenter implements IPresenter
 
     public function onDestruction(): void {}
 
-    public function onServerError(\Throwable $e): ?string
+    public function onServerError(\Throwable $e, ?string $errorCode = null): ?string
     {
         return null;
     }

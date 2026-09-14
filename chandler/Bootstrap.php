@@ -56,6 +56,11 @@ class Bootstrap
         Debugger::enable((CHANDLER_ROOT_CONF["debug"] ? Debugger::DEVELOPMENT : Debugger::PRODUCTION), $this->projectRoot . "/logs");
         Debugger::getBar()->addPanel(new Chandler\Debug\DatabasePanel());
 
+        $defaultServerTemplate = __DIR__ . "/Debug/templates/error.500.phtml";
+        if (file_exists($defaultServerTemplate)) {
+            Debugger::$errorTemplate = $defaultServerTemplate;
+        }
+
         $errorPages = CHANDLER_ROOT_CONF["errorPages"] ?? null;
         $serverTemplate = is_array($errorPages) ? ($errorPages["server"] ?? null) : null;
         if (is_string($serverTemplate)) {
@@ -66,17 +71,27 @@ class Bootstrap
         }
 
         $prevExceptionHandler = set_exception_handler(function (\Throwable $e) use (&$prevExceptionHandler): void {
+            $errorCode = \Chandler\Debug\DebuggerUtils::getErrorCode($e);
+
             $router    = Chandler\MVC\Routing\Router::i();
             $presenter = $router->getCurrentPresenter();
             $route     = $router->getCurrentRoute();
 
             $output = null;
             if ($presenter && method_exists($presenter, "onServerError")) {
-                $output = $presenter->onServerError($e);
+                try {
+                    $output = $presenter->onServerError($e, $errorCode);
+                } catch (\Throwable $presenterEx) {
+                    \Tracy\Debugger::log($presenterEx, \Tracy\Debugger::EXCEPTION);
+                }
             }
 
             if (!is_string($output)) {
-                $output = $router->handleServerError($e, $route, $presenter);
+                try {
+                    $output = $router->handleServerError($e, $route, $presenter, $errorCode);
+                } catch (\Throwable $routerEx) {
+                    \Tracy\Debugger::log($routerEx, \Tracy\Debugger::EXCEPTION);
+                }
             }
 
             if (is_string($output)) {
@@ -87,11 +102,42 @@ class Bootstrap
                 exit;
             }
 
-            if (is_callable($prevExceptionHandler)) {
-                $prevExceptionHandler($e);
-            } else {
-                \Tracy\Debugger::exceptionHandler($e);
-                exit(255);
+            if (defined("CHANDLER_ROOT_CONF") && (CHANDLER_ROOT_CONF["debug"] ?? false)) {
+                if (is_callable($prevExceptionHandler)) {
+                    $prevExceptionHandler($e);
+                } else {
+                    \Tracy\Debugger::exceptionHandler($e);
+                    exit(255);
+                }
+            }
+
+            try {
+                if (ob_get_level() > 0) {
+                    ob_clean();
+                }
+
+                $errorPages     = CHANDLER_ROOT_CONF["errorPages"] ?? null;
+                $serverTemplate = is_array($errorPages) ? ($errorPages["server"] ?? null) : null;
+                if (is_string($serverTemplate)) {
+                    $path = $this->resolveErrorPagePath($serverTemplate);
+                    if ($path !== null && file_exists($path)) {
+                        header("HTTP/1.0 500 Internal Server Error");
+                        (static function (bool $logged, ?string $errorCode, \Throwable $e) use ($path): void {
+                            require $path;
+                        })(true, $errorCode, $e);
+                        exit;
+                    }
+                }
+
+                chandler_http_panic(500, "Internal Server Error", "An unexpected error occurred on the server.", $errorCode);
+            } catch (\Throwable $panicEx) {
+                \Tracy\Debugger::log($panicEx, \Tracy\Debugger::EXCEPTION);
+                if (is_callable($prevExceptionHandler)) {
+                    $prevExceptionHandler($e);
+                } else {
+                    \Tracy\Debugger::exceptionHandler($e);
+                    exit(255);
+                }
             }
         });
     }
@@ -291,8 +337,9 @@ class Bootstrap
      * @param string $msg Detailed error message
      * @return void
      */
-    private function renderErrorPage(int $code, string $desc, string $msg): void
+    private function renderErrorPage(int $code, string $desc, string $msg, ?string $errorCode = null): void
     {
+        $errorCode = $errorCode ?? \Chandler\Debug\DebuggerUtils::getLastErrorCode();
         $errorPages = CHANDLER_ROOT_CONF["errorPages"] ?? null;
         $clientTemplate = is_array($errorPages) ? ($errorPages["client"] ?? null) : null;
         if (is_string($clientTemplate)) {
@@ -312,10 +359,13 @@ class Bootstrap
                     $latte->addExtension(new \Latte\Essential\RawPhpExtension());
 
                     $latte->render($path, [
-                        "code"    => $code,
-                        "desc"    => $desc,
-                        "msg"     => $msg,
-                        "message" => $msg,
+                        "code"      => $code,
+                        "desc"      => $desc,
+                        "msg"       => $msg,
+                        "message"   => $msg,
+                        "errorCode" => $errorCode,
+                        "errorId"   => $errorCode,
+                        "tracyCode" => $errorCode,
                     ]);
                     exit;
                 } catch (\Throwable $e) {
@@ -324,7 +374,7 @@ class Bootstrap
             }
         }
 
-        chandler_http_panic($code, $desc, $msg);
+        chandler_http_panic($code, $desc, $msg, $errorCode);
     }
 
     /**
