@@ -40,7 +40,7 @@ abstract class SimplePresenter implements IPresenter
 
     protected function throwError(int $code = 400, string $desc = "Bad Request", string $message = "", ?string $errorCode = null): void
     {
-        $errorCode = $errorCode ?? \Chandler\Debug\DebuggerUtils::getLastErrorCode();
+        $errorCode ??= \Chandler\Debug\DebuggerUtils::getLastErrorCode();
         if (!is_null($this->errorTemplate)) {
             header("HTTP/1.0 $code $desc");
 

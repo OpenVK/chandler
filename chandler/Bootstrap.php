@@ -339,7 +339,7 @@ class Bootstrap
      */
     private function renderErrorPage(int $code, string $desc, string $msg, ?string $errorCode = null): void
     {
-        $errorCode = $errorCode ?? \Chandler\Debug\DebuggerUtils::getLastErrorCode();
+        $errorCode ??= \Chandler\Debug\DebuggerUtils::getLastErrorCode();
         $errorPages = CHANDLER_ROOT_CONF["errorPages"] ?? null;
         $clientTemplate = is_array($errorPages) ? ($errorPages["client"] ?? null) : null;
         if (is_string($clientTemplate)) {

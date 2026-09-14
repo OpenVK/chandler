@@ -90,7 +90,7 @@ final class Router
      */
     public function handleServerError(\Throwable $e, ?Route $route = null, ?IPresenter $presenter = null, ?string $errorCode = null): ?string
     {
-        $errorCode = $errorCode ?? \Chandler\Debug\DebuggerUtils::getErrorCode($e);
+        $errorCode ??= \Chandler\Debug\DebuggerUtils::getErrorCode($e);
         foreach ($this->serverErrorHandlers as $handler) {
             $response = $handler($e, $route, $presenter, $errorCode);
             if (is_string($response)) {
