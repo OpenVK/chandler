@@ -213,6 +213,7 @@ final class CronRunner
             $id          = $task->getId();
             $displayName = $task->getName();
             $scheduleStr = $task->getScheduleDescription();
+            $description = $task->getDescription();
 
             $taskState  = $state[$id] ?? null;
             $lastRunStr = "never";
@@ -238,6 +239,10 @@ final class CronRunner
                 $lastRunStr,
                 self::color($statusColor, $statusStr)
             );
+
+            if ($description !== null && trim($description) !== "") {
+                self::writeln(self::color("gray", "    └─ " . $description));
+            }
         }
 
         self::writeln(str_repeat("-", 85));
