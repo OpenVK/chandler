@@ -308,12 +308,8 @@ class Bootstrap
                     if (is_dir($cacheDir)) {
                         $latte->setTempDirectory($cacheDir);
                     }
-                    if (class_exists(\Latte\Bridges\Tracy\TracyExtension::class)) {
-                        $latte->addExtension(new \Latte\Bridges\Tracy\TracyExtension());
-                    }
-                    if (class_exists(\Latte\Essential\RawPhpExtension::class)) {
-                        $latte->addExtension(new \Latte\Essential\RawPhpExtension());
-                    }
+                    $latte->addExtension(new \Latte\Bridges\Tracy\TracyExtension());
+                    $latte->addExtension(new \Latte\Essential\RawPhpExtension());
 
                     $latte->render($path, [
                         "code"    => $code,
