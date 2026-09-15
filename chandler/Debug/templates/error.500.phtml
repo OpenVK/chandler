@@ -1,7 +1,10 @@
 <?php
+
 declare(strict_types=1);
 
-$errorCode = $errorCode ?? (\Chandler\Debug\DebuggerUtils::getLastErrorCode());
+use Chandler\Debug\DebuggerUtils;
+
+$errorCode = $errorCode ?? DebuggerUtils::getLastErrorCode();
 $code = 500;
 $description = "Internal Server Error";
 $message = "An unexpected error occurred on the server.";

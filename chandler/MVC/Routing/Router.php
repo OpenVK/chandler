@@ -4,12 +4,17 @@ declare(strict_types=1);
 
 namespace Chandler\MVC\Routing;
 
-use Chandler\Patterns\TSimpleSingleton;
+use Chandler\Debug\DebuggerUtils;
 use Chandler\Eventing\EventDispatcher;
-use Chandler\Session\Session;
 use Chandler\MVC\Exceptions\InterruptedException;
 use Chandler\MVC\IPresenter;
+use Chandler\MVC\Routing\Exceptions\UnknownTypeAliasException;
+use Chandler\Patterns\TSimpleSingleton;
+use Chandler\Session\Session;
 use Nette\DI;
+use SodiumException;
+use Throwable;
+use Tracy\Debugger;
 
 final class Router
 {
@@ -88,9 +93,9 @@ final class Router
      * @param string|null $errorCode
      * @return string|null Response if handled, null otherwise
      */
-    public function handleServerError(\Throwable $e, ?Route $route = null, ?IPresenter $presenter = null, ?string $errorCode = null): ?string
+    public function handleServerError(Throwable $e, ?Route $route = null, ?IPresenter $presenter = null, ?string $errorCode = null): ?string
     {
-        $errorCode ??= \Chandler\Debug\DebuggerUtils::getErrorCode($e);
+        $errorCode ??= DebuggerUtils::getErrorCode($e);
         foreach ($this->serverErrorHandlers as $handler) {
             $response = $handler($e, $route, $presenter, $errorCode);
             if (is_string($response)) {
@@ -121,7 +126,7 @@ final class Router
                     $exMessage .= ")";
                 }
 
-                throw new Exceptions\UnknownTypeAliasException($exMessage);
+                throw new UnknownTypeAliasException($exMessage);
             }
 
             return $replacement;
@@ -157,7 +162,7 @@ final class Router
 
                 try {
                     if (!isset($data[0]) || !isset($data[1])) {
-                        throw new \SodiumException();
+                        throw new SodiumException();
                     }
                     [$hash, $nonce] = $data;
 
@@ -170,7 +175,7 @@ final class Router
                             trigger_error("Bad value for chandler.security.csrfProtection: disabled, permissive or strict expected.", E_USER_ERROR);
                         }
                     }
-                } catch (\SodiumException $ex) {
+                } catch (SodiumException $ex) {
                 }
             }
         }
@@ -182,8 +187,8 @@ final class Router
     {
         $loader = new DI\ContainerLoader(CHANDLER_ROOT . "/tmp/cache/di_$namespace", true);
         $class  = $loader->load(function ($compiler) use ($namespace) {
-            $fileLoader = new \Nette\DI\Config\Loader();
-            $fileLoader->addAdapter("yml", \Nette\DI\Config\Adapters\NeonAdapter::class);
+            $fileLoader = new DI\Config\Loader();
+            $fileLoader->addAdapter("yml", DI\Config\Adapters\NeonAdapter::class);
 
             $compiler->loadConfig(self::getExtensionPath($namespace) . "/Web/di.yml", $fileLoader);
         });
@@ -239,11 +244,11 @@ final class Router
             $presenter->onAfterRender();
         } catch (InterruptedException $ex) {
             $output = "";
-        } catch (\Throwable $ex) {
-            if (class_exists(\Tracy\Debugger::class)) {
-                \Tracy\Debugger::log($ex, \Tracy\Debugger::EXCEPTION);
+        } catch (Throwable $ex) {
+            if (class_exists(Debugger::class)) {
+                Debugger::log($ex, Debugger::EXCEPTION);
             }
-            $errorCode = \Chandler\Debug\DebuggerUtils::getErrorCode($ex);
+            $errorCode = DebuggerUtils::getErrorCode($ex);
 
             $handled = false;
 
@@ -432,7 +437,7 @@ final class Router
 
             try {
                 parse_str($queryString, $queryParams);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $queryParams = [];
             }
 

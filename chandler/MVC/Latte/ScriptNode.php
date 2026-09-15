@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace Chandler\MVC\Latte;
 
-class ScriptNode extends \Latte\Compiler\Nodes\StatementNode
+use Latte\Compiler\Nodes\StatementNode;
+use Latte\Compiler\PrintContext;
+use Latte\Compiler\Tag;
+
+class ScriptNode extends StatementNode
 {
     public $file;
 
-    public static function create(\Latte\Compiler\Tag $tag): self
+    public static function create(Tag $tag): self
     {
         $tag->expectArguments();
         $node = new self();
@@ -16,7 +20,7 @@ class ScriptNode extends \Latte\Compiler\Nodes\StatementNode
         return $node;
     }
 
-    public function print(\Latte\Compiler\PrintContext $context): string
+    public function print(PrintContext $context): string
     {
         return $context->format(
             <<<'XX'

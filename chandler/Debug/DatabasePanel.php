@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Chandler\Debug;
 
 use Nette\Database\Helpers as DbHelpers;
+use Nette\SmartObject;
+use Tracy\IBarPanel;
 
-class DatabasePanel implements \Tracy\IBarPanel
+class DatabasePanel implements IBarPanel
 {
-    use \Nette\SmartObject;
+    use SmartObject;
 
     public function getTab()
     {

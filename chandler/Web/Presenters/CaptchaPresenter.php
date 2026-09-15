@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Chandler\Web\Presenters;
 
+use Chandler\Captcha\CaptchaManager;
 use Chandler\MVC\SimplePresenter;
 use Nette\Utils\Image;
 
@@ -11,7 +12,7 @@ class CaptchaPresenter extends SimplePresenter
 {
     public function renderCaptcha()
     {
-        $manager = \Chandler\Captcha\CaptchaManager::i();
+        $manager = CaptchaManager::i();
         $image   = $manager->getImage();
 
         header("Pragma: no-cache");

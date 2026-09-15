@@ -4,9 +4,19 @@ declare(strict_types=1);
 
 namespace Chandler\MVC;
 
+use Chandler\Debug\DebuggerUtils;
+use Chandler\Email\Email;
+use Chandler\MVC\Exceptions\InterruptedException;
 use Chandler\MVC\Latte\ChandlerExtension;
+use Chandler\MVC\Routing\Router;
+use DOMDocument;
+use DOMText;
+use DOMXPath;
+use Latte\Bridges\Tracy\TracyExtension;
 use Latte\Engine as TemplatingEngine;
+use Latte\Essential\RawPhpExtension;
 use Nette\SmartObject;
+use Throwable;
 
 abstract class SimplePresenter implements IPresenter
 {
@@ -30,8 +40,8 @@ abstract class SimplePresenter implements IPresenter
         $latte = new TemplatingEngine();
 
         $latte->setTempDirectory(CHANDLER_ROOT . "/tmp/cache/templates");
-        $latte->addExtension(new \Latte\Bridges\Tracy\TracyExtension());
-        $latte->addExtension(new \Latte\Essential\RawPhpExtension());
+        $latte->addExtension(new TracyExtension());
+        $latte->addExtension(new RawPhpExtension());
 
         $latte->addExtension(new ChandlerExtension(static::class));
 
@@ -40,12 +50,12 @@ abstract class SimplePresenter implements IPresenter
 
     protected function throwError(int $code = 400, string $desc = "Bad Request", string $message = "", ?string $errorCode = null): void
     {
-        $errorCode ??= \Chandler\Debug\DebuggerUtils::getLastErrorCode();
+        $errorCode ??= DebuggerUtils::getLastErrorCode();
         if (!is_null($this->errorTemplate)) {
             header("HTTP/1.0 $code $desc");
 
             $ext = explode("\\", get_class($this))[0];
-            $path = \Chandler\MVC\Routing\Router::getExtensionPath($ext) . "/Web/Presenters/templates/" . $this->errorTemplate . ".latte";
+            $path = Router::getExtensionPath($ext) . "/Web/Presenters/templates/" . $this->errorTemplate . ".latte";
 
             $latte = $this->getTemplatingEngine();
             $latte->render($path, array_merge_recursive([
@@ -72,7 +82,7 @@ abstract class SimplePresenter implements IPresenter
 
     protected function terminate(): void
     {
-        throw new Exceptions\InterruptedException();
+        throw new InterruptedException();
     }
 
     protected function notFound(): void
@@ -104,7 +114,7 @@ abstract class SimplePresenter implements IPresenter
     protected function pass(string $to, ...$args): void
     {
         $args = array_merge([$to], $args);
-        $router = \Chandler\MVC\Routing\Router::i();
+        $router = Router::i();
         $__out = $router->execute($router->reverse(...$args), "libchandler:absolute.0");
         exit($__out);
     }
@@ -115,16 +125,16 @@ abstract class SimplePresenter implements IPresenter
         $template .= ".eml.latte";
 
         $renderedHTML = (new TemplatingEngine())->renderToString($template, $params);
-        $document = new \DOMDocument();
+        $document = new DOMDocument();
         $document->loadHTML($renderedHTML, LIBXML_NOEMPTYTAG);
-        $querySel = new \DOMXPath($document);
+        $querySel = new DOMXPath($document);
 
         $subject = $querySel->query("//title/text()")->item(0)->data;
 
         foreach ($querySel->query("//link[@rel='stylesheet']") as $link) {
             $style = $document->createElement("style");
             $style->setAttribute("id", uniqid("mail", true));
-            $style->appendChild(new \DOMText(file_get_contents("$emailDir/assets/css/" . $link->getAttribute("href"))));
+            $style->appendChild(new DOMText(file_get_contents("$emailDir/assets/css/" . $link->getAttribute("href"))));
 
             $link->parentNode->appendChild($style);
             $link->parentNode->removeChild($link);
@@ -138,7 +148,7 @@ abstract class SimplePresenter implements IPresenter
             $image->setAttribute("src", "data:image/$type;base64,$contents");
         }
 
-        \Chandler\Email\Email::send($to, $subject, $document->saveHTML());
+        Email::send($to, $subject, $document->saveHTML());
     }
 
     protected function queryParam(string $index): ?string
@@ -211,7 +221,7 @@ abstract class SimplePresenter implements IPresenter
 
     public function onDestruction(): void {}
 
-    public function onServerError(\Throwable $e, ?string $errorCode = null): ?string
+    public function onServerError(Throwable $e, ?string $errorCode = null): ?string
     {
         return null;
     }

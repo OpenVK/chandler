@@ -1,5 +1,7 @@
 <?php
 
+use Chandler\Debug\DebuggerUtils;
+
 /**
  * Ends application and renders error page.
  *
@@ -13,7 +15,7 @@
  */
 function chandler_http_panic(int $code = 400, string $description = "Bad Request", string $message = "", ?string $errorCode = null): void
 {
-    $errorCode ??= \Chandler\Debug\DebuggerUtils::getLastErrorCode();
+    $errorCode ??= DebuggerUtils::getLastErrorCode();
     $errorType = ($code >= 400 && $code < 500) ? "Client error" : "Server error";
 
     $tracyBlock = "";

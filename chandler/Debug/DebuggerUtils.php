@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Chandler\Debug;
 
+use Throwable;
 use Tracy\Debugger;
 use Tracy\Logger;
 
@@ -15,10 +16,10 @@ class DebuggerUtils
      * Extracts or calculates the Tracy deduplication hash for an exception.
      * Also saves it as the last recorded error code.
      *
-     * @param \Throwable|null $e
+     * @param Throwable|null $e
      * @return string|null 10-character hash (e.g. "a1b2c3d4e5") or null if not available
      */
-    public static function getErrorCode(?\Throwable $e = null): ?string
+    public static function getErrorCode(?Throwable $e = null): ?string
     {
         if ($e === null) {
             return self::getLastErrorCode();
@@ -34,7 +35,7 @@ class DebuggerUtils
                     if (preg_match('/--([a-f0-9]+)\.html$/i', $file, $matches)) {
                         $code = $matches[1];
                     }
-                } catch (\Throwable) {
+                } catch (Throwable) {
                     // Fallback to manual computation below
                 }
             }

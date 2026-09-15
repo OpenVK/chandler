@@ -1,6 +1,16 @@
 <?php
 
 declare(strict_types=1);
+
+use Chandler\Database\CurrentUser;
+use Chandler\Debug\DatabasePanel;
+use Chandler\Debug\DebuggerUtils;
+use Chandler\Extensions\ExtensionManager;
+use Chandler\MVC\Routing\Router;
+use Latte\Bridges\Tracy\TracyExtension;
+use Latte\Engine;
+use Latte\Essential\RawPhpExtension;
+use Throwable;
 use Tracy\Debugger;
 
 define("CHANDLER_VER", "0.1.0");
@@ -54,7 +64,7 @@ class Bootstrap
     private function registerDebugger(): void
     {
         Debugger::enable((CHANDLER_ROOT_CONF["debug"] ? Debugger::DEVELOPMENT : Debugger::PRODUCTION), $this->projectRoot . "/logs");
-        Debugger::getBar()->addPanel(new Chandler\Debug\DatabasePanel());
+        Debugger::getBar()->addPanel(new DatabasePanel());
 
         $defaultServerTemplate = __DIR__ . "/Debug/templates/error.500.phtml";
         if (file_exists($defaultServerTemplate)) {
@@ -70,10 +80,10 @@ class Bootstrap
             }
         }
 
-        $prevExceptionHandler = set_exception_handler(function (\Throwable $e) use (&$prevExceptionHandler): void {
-            $errorCode = \Chandler\Debug\DebuggerUtils::getErrorCode($e);
+        $prevExceptionHandler = set_exception_handler(function (Throwable $e) use (&$prevExceptionHandler): void {
+            $errorCode = DebuggerUtils::getErrorCode($e);
 
-            $router    = Chandler\MVC\Routing\Router::i();
+            $router    = Router::i();
             $presenter = $router->getCurrentPresenter();
             $route     = $router->getCurrentRoute();
 
@@ -81,16 +91,16 @@ class Bootstrap
             if ($presenter && method_exists($presenter, "onServerError")) {
                 try {
                     $output = $presenter->onServerError($e, $errorCode);
-                } catch (\Throwable $presenterEx) {
-                    \Tracy\Debugger::log($presenterEx, \Tracy\Debugger::EXCEPTION);
+                } catch (Throwable $presenterEx) {
+                    Debugger::log($presenterEx, Debugger::EXCEPTION);
                 }
             }
 
             if (!is_string($output)) {
                 try {
                     $output = $router->handleServerError($e, $route, $presenter, $errorCode);
-                } catch (\Throwable $routerEx) {
-                    \Tracy\Debugger::log($routerEx, \Tracy\Debugger::EXCEPTION);
+                } catch (Throwable $routerEx) {
+                    Debugger::log($routerEx, Debugger::EXCEPTION);
                 }
             }
 
@@ -106,7 +116,7 @@ class Bootstrap
                 if (is_callable($prevExceptionHandler)) {
                     $prevExceptionHandler($e);
                 } else {
-                    \Tracy\Debugger::exceptionHandler($e);
+                    Debugger::exceptionHandler($e);
                     exit(255);
                 }
             }
@@ -122,7 +132,7 @@ class Bootstrap
                     $path = $this->resolveErrorPagePath($serverTemplate);
                     if ($path !== null && file_exists($path)) {
                         header("HTTP/1.0 500 Internal Server Error");
-                        (static function (bool $logged, ?string $errorCode, \Throwable $e) use ($path): void {
+                        (static function (bool $logged, ?string $errorCode, Throwable $e) use ($path): void {
                             require $path;
                         })(true, $errorCode, $e);
                         exit;
@@ -130,12 +140,12 @@ class Bootstrap
                 }
 
                 chandler_http_panic(500, "Internal Server Error", "An unexpected error occurred on the server.", $errorCode);
-            } catch (\Throwable $panicEx) {
-                \Tracy\Debugger::log($panicEx, \Tracy\Debugger::EXCEPTION);
+            } catch (Throwable $panicEx) {
+                Debugger::log($panicEx, Debugger::EXCEPTION);
                 if (is_callable($prevExceptionHandler)) {
                     $prevExceptionHandler($e);
                 } else {
-                    \Tracy\Debugger::exceptionHandler($e);
+                    Debugger::exceptionHandler($e);
                     exit(255);
                 }
             }
@@ -229,7 +239,7 @@ class Bootstrap
      */
     private function igniteExtensions(): void
     {
-        Chandler\Extensions\ExtensionManager::i();
+        ExtensionManager::i();
     }
 
     /**
@@ -243,7 +253,7 @@ class Bootstrap
     {
         ob_start();
 
-        $router = Chandler\MVC\Routing\Router::i();
+        $router = Router::i();
         if (($output = $router->execute($url, null)) !== null) {
             echo $output;
             return;
@@ -288,7 +298,7 @@ class Bootstrap
             return;
         }
 
-        $router = Chandler\MVC\Routing\Router::i();
+        $router = Router::i();
         $router->setExtensionPath("Chandler", __DIR__);
         $router->push(null, "/commitcaptcha/captcha.webp", "Chandler", "Captcha", "captcha", []);
     }
@@ -313,7 +323,7 @@ class Bootstrap
 
         $rootApp = CHANDLER_ROOT_CONF["rootApp"] ?? null;
         if (is_string($rootApp) && $rootApp !== "") {
-            $base = Chandler\MVC\Routing\Router::getExtensionPath($rootApp);
+            $base = Router::getExtensionPath($rootApp);
             $resolved = "$base/$template";
             if (file_exists($resolved)) {
                 return $resolved;
@@ -339,7 +349,7 @@ class Bootstrap
      */
     private function renderErrorPage(int $code, string $desc, string $msg, ?string $errorCode = null): void
     {
-        $errorCode ??= \Chandler\Debug\DebuggerUtils::getLastErrorCode();
+        $errorCode ??= DebuggerUtils::getLastErrorCode();
         $errorPages = CHANDLER_ROOT_CONF["errorPages"] ?? null;
         $clientTemplate = is_array($errorPages) ? ($errorPages["client"] ?? null) : null;
         if (is_string($clientTemplate)) {
@@ -350,13 +360,13 @@ class Bootstrap
                         ob_clean();
                     }
                     header("HTTP/1.0 $code $desc");
-                    $latte = new \Latte\Engine();
+                    $latte = new Engine();
                     $cacheDir = $this->projectRoot . "/tmp/cache/templates";
                     if (is_dir($cacheDir)) {
                         $latte->setTempDirectory($cacheDir);
                     }
-                    $latte->addExtension(new \Latte\Bridges\Tracy\TracyExtension());
-                    $latte->addExtension(new \Latte\Essential\RawPhpExtension());
+                    $latte->addExtension(new TracyExtension());
+                    $latte->addExtension(new RawPhpExtension());
 
                     $latte->render($path, [
                         "code"      => $code,
@@ -368,7 +378,7 @@ class Bootstrap
                         "tracyCode" => $errorCode,
                     ]);
                     exit;
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     Debugger::log($e, Debugger::EXCEPTION);
                 }
             }
@@ -404,7 +414,7 @@ class Bootstrap
         if (!$headless) {
             header("Referrer-Policy: strict-origin-when-cross-origin");
             $this->defineIP();
-            \Chandler\Database\CurrentUser::get(CONNECTING_IP, $_SERVER["HTTP_USER_AGENT"]);
+            CurrentUser::get(CONNECTING_IP, $_SERVER["HTTP_USER_AGENT"]);
             $this->route(function_exists("get_current_url") ? get_current_url() : $_SERVER["REQUEST_URI"]);
         }
     }
