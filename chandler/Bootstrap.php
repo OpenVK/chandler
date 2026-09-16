@@ -43,6 +43,7 @@ class Bootstrap
             "/tmp/cache/database",
             "/tmp/cache/templates",
             "/tmp/cache/yaml",
+            "/tmp/cache/cron",
             "/tmp/plugins-artifacts",
         ];
 
