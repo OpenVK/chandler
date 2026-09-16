@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Chandler\Database;
 
-use Nette\Database;
+use Chandler\Debug\DebuggerUtils;
 use Nette\Caching\Storages\FileStorage;
+use Nette\Database;
 use Nette\Database\Conventions\DiscoveredConventions;
+use Nette\Database\DriverException;
 
 final class DatabaseConnection
 {
@@ -23,7 +25,8 @@ final class DatabaseConnection
             if ($ex->getCode() === "42000") {
                 chandler_db_busy();
             } else {
-                chandler_http_panic(503, "Service Temporarily Unavailable", "Error estabilishing database connection: " . $ex->getMessage());
+                $errorCode = DebuggerUtils::getErrorCode($ex);
+                chandler_http_panic(503, "Service Temporarily Unavailable", "Error estabilishing database connection: " . $ex->getMessage(), $errorCode);
             }
         }
 
@@ -46,7 +49,7 @@ final class DatabaseConnection
     protected function getQueryCallback(): array
     {
         return [(function ($connection, $result) {
-            if ($result instanceof \Nette\Database\DriverException) {
+            if ($result instanceof DriverException) {
                 return;
             }
 

@@ -1,5 +1,7 @@
 <?php
 
+use Chandler\Debug\DebuggerUtils;
+
 /**
  * Ends application and renders error page.
  *
@@ -8,10 +10,20 @@
  * @param int $code HTTP Error code
  * @param string $description HTTP Error description
  * @param string $message Additional message to show to client
+ * @param string|null $errorCode Error code / Tracy deduplication hash
  * @return void
  */
-function chandler_http_panic(int $code = 400, string $description = "Bad Request", string $message = ""): void
+function chandler_http_panic(int $code = 400, string $description = "Bad Request", string $message = "", ?string $errorCode = null): void
 {
+    $errorCode ??= DebuggerUtils::getLastErrorCode();
+    $errorType = ($code >= 400 && $code < 500) ? "Client error" : "Server error";
+
+    $tracyBlock = "";
+    if ($errorCode !== null && $errorCode !== "") {
+        $escapedCode = htmlspecialchars($errorCode, ENT_QUOTES, "UTF-8");
+        $tracyBlock  = "<p style=\"font-size:12px;color:#555;margin-top:10px;\">Error ID: <code style=\"font-family:monospace;background:#f0f0f0;padding:2px 5px;border:1px solid #ccc;border-radius:3px;\">{$escapedCode}</code></p>";
+    }
+
     $error = <<<EOE
         <?xml version="1.0" encoding="UTF-8" ?>
         <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
@@ -34,7 +46,7 @@ function chandler_http_panic(int $code = 400, string $description = "Bad Request
         </head>
         <body>
             <div id="header">
-                <h1>Server error</h1>
+                <h1>$errorType</h1>
             </div>
             <div id="subheader_Server">
                 libchandler
@@ -43,8 +55,9 @@ function chandler_http_panic(int $code = 400, string $description = "Bad Request
                 <fieldset>
                     <legend>Error summary</legend>
                     
-                    <h2>HTTP Error $code.0 - $description</h2>
+                    <h2>HTTP Error $code - $description</h2>
                     <h3>$message</h3>
+                    $tracyBlock
                 </fieldset>
             </div>
         </body>

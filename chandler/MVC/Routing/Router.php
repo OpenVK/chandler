@@ -4,12 +4,17 @@ declare(strict_types=1);
 
 namespace Chandler\MVC\Routing;
 
-use Chandler\Patterns\TSimpleSingleton;
+use Chandler\Debug\DebuggerUtils;
 use Chandler\Eventing\EventDispatcher;
-use Chandler\Session\Session;
 use Chandler\MVC\Exceptions\InterruptedException;
 use Chandler\MVC\IPresenter;
+use Chandler\MVC\Routing\Exceptions\UnknownTypeAliasException;
+use Chandler\Patterns\TSimpleSingleton;
+use Chandler\Session\Session;
 use Nette\DI;
+use SodiumException;
+use Throwable;
+use Tracy\Debugger;
 
 final class Router
 {
@@ -21,6 +26,9 @@ final class Router
     private $routes  = [];
     private $statics = [];
     private $scope   = [];
+    private ?Route $currentRoute = null;
+    private ?IPresenter $currentPresenter = null;
+    private array $serverErrorHandlers = [];
 
     private static $extensionPaths = [];
 
@@ -48,7 +56,54 @@ final class Router
             return self::$extensionPaths[$namespace];
         }
 
-        return CHANDLER_ROOT . "/extensions/enabled/$namespace";
+        $root = defined("CHANDLER_ROOT") ? constant("CHANDLER_ROOT") : dirname(__DIR__, 2);
+        return "$root/extensions/enabled/$namespace";
+    }
+
+    public function getCurrentRoute(): ?Route
+    {
+        return $this->currentRoute;
+    }
+
+    public function getCurrentPresenter(): ?IPresenter
+    {
+        return $this->currentPresenter;
+    }
+
+    /**
+     * Registers a callback to handle server errors (5xx).
+     * Handler signature: function(\Throwable $e, ?Route $route, ?IPresenter $presenter): ?string
+     * Returning a string from the handler marks the error as handled and sends that string as response.
+     * Returning null means the handler did not handle it and subsequent handlers should be checked.
+     *
+     * @param callable $handler
+     * @return void
+     */
+    public function onServerError(callable $handler): void
+    {
+        $this->serverErrorHandlers[] = $handler;
+    }
+
+    /**
+     * Dispatches a server error to registered handlers.
+     *
+     * @param \Throwable $e
+     * @param Route|null $route
+     * @param IPresenter|null $presenter
+     * @param string|null $errorCode
+     * @return string|null Response if handled, null otherwise
+     */
+    public function handleServerError(Throwable $e, ?Route $route = null, ?IPresenter $presenter = null, ?string $errorCode = null): ?string
+    {
+        $errorCode ??= DebuggerUtils::getErrorCode($e);
+        foreach ($this->serverErrorHandlers as $handler) {
+            $response = $handler($e, $route, $presenter, $errorCode);
+            if (is_string($response)) {
+                return $response;
+            }
+        }
+
+        return null;
     }
 
     private function computeRegExp(string $route, array $customAliases = [], ?string $prefix = null): string
@@ -71,7 +126,7 @@ final class Router
                     $exMessage .= ")";
                 }
 
-                throw new Exceptions\UnknownTypeAliasException($exMessage);
+                throw new UnknownTypeAliasException($exMessage);
             }
 
             return $replacement;
@@ -107,7 +162,7 @@ final class Router
 
                 try {
                     if (!isset($data[0]) || !isset($data[1])) {
-                        throw new \SodiumException();
+                        throw new SodiumException();
                     }
                     [$hash, $nonce] = $data;
 
@@ -120,7 +175,7 @@ final class Router
                             trigger_error("Bad value for chandler.security.csrfProtection: disabled, permissive or strict expected.", E_USER_ERROR);
                         }
                     }
-                } catch (\SodiumException $ex) {
+                } catch (SodiumException $ex) {
                 }
             }
         }
@@ -132,8 +187,8 @@ final class Router
     {
         $loader = new DI\ContainerLoader(CHANDLER_ROOT . "/tmp/cache/di_$namespace", true);
         $class  = $loader->load(function ($compiler) use ($namespace) {
-            $fileLoader = new \Nette\DI\Config\Loader();
-            $fileLoader->addAdapter("yml", \Nette\DI\Config\Adapters\NeonAdapter::class);
+            $fileLoader = new DI\Config\Loader();
+            $fileLoader->addAdapter("yml", DI\Config\Adapters\NeonAdapter::class);
 
             $compiler->loadConfig(self::getExtensionPath($namespace) . "/Web/di.yml", $fileLoader);
         });
@@ -157,8 +212,10 @@ final class Router
     private function delegateController(string $namespace, string $presenterName, string $action, array $parameters = []): string
     {
         $presenter = $this->getPresenter($namespace, $presenterName);
+        $this->currentPresenter = $presenter;
         $action    = ucfirst($action);
 
+        $output = "";
         try {
             $presenter->onStartup();
             $presenter->{"render$action"}(...$parameters);
@@ -186,17 +243,46 @@ final class Router
 
             $presenter->onAfterRender();
         } catch (InterruptedException $ex) {
+            $output = "";
+        } catch (Throwable $ex) {
+            if (class_exists(Debugger::class)) {
+                Debugger::log($ex, Debugger::EXCEPTION);
+            }
+            $errorCode = DebuggerUtils::getErrorCode($ex);
+
+            $handled = false;
+
+            $result = $presenter->onServerError($ex, $errorCode);
+            if (is_string($result)) {
+                $output  = $result;
+                $handled = true;
+            }
+
+            if (!$handled) {
+                $result = $this->handleServerError($ex, $this->currentRoute, $presenter, $errorCode);
+                if (is_string($result)) {
+                    $output  = $result;
+                    $handled = true;
+                }
+            }
+
+            if (!$handled) {
+                $this->currentPresenter = null;
+                throw $ex;
+            }
         }
 
         $presenter->onStop();
         $presenter->onDestruction();
         $presenter = null;
+        $this->currentPresenter = null;
 
         return $output;
     }
 
     private function delegateRoute(Route $route, array $matches): string
     {
+        $this->currentRoute = $route;
         $parameters = [];
 
         foreach ($matches as $param) {
@@ -204,7 +290,11 @@ final class Router
         }
 
         $this->setCSRFStatus($route);
-        return $this->delegateController($route->namespace, $route->presenter, $route->action, $parameters);
+        try {
+            return $this->delegateController($route->namespace, $route->presenter, $route->action, $parameters);
+        } finally {
+            $this->currentRoute = null;
+        }
     }
 
     public function delegateStatic(string $namespace, string $path, ?array $queryParams): string
@@ -347,7 +437,7 @@ final class Router
 
             try {
                 parse_str($queryString, $queryParams);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $queryParams = [];
             }
 

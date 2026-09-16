@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Chandler\MVC\Latte;
 
-class ChandlerExtension extends \Latte\Extension
+use Latte\Extension;
+
+class ChandlerExtension extends Extension
 {
     public function __construct(
         private string $presenter,

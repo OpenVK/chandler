@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Chandler\Signaling;
 
 use Chandler\Patterns\TSimpleSingleton;
+use Exception;
 use Predis\Client as RedisClient;
+use Predis\TimeoutException;
 
 /**
  * Signal manager (singleton).
@@ -155,7 +157,7 @@ final class SignalManager
                         $callback($evt, $id);
                     }
                 }
-            } catch (\Predis\TimeoutException $e) {
+            } catch (TimeoutException $e) {
                 // On timeout we're returning nothing
                 $subscriber->stop();
                 exit(json_encode([
@@ -163,7 +165,7 @@ final class SignalManager
                     "updates" => [],
                 ]));
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             error_log("Couldn't connect to Redis server, fallback to old sqlite method. Exception Message: " . $e->getMessage());
         }
 
