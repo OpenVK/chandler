@@ -10,7 +10,6 @@ use Chandler\MVC\Routing\Router;
 use Latte\Bridges\Tracy\TracyExtension;
 use Latte\Engine;
 use Latte\Essential\RawPhpExtension;
-use Throwable;
 use Tracy\Debugger;
 
 define("CHANDLER_VER", "0.1.0");
