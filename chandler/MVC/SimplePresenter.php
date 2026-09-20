@@ -101,6 +101,10 @@ abstract class SimplePresenter implements IPresenter
 
     protected function redirect(string $location, int $code = 2): void
     {
+        if (!$this->isSafeRedirect($location)) {
+            $this->throwError(400, "Bad Request", "Invalid redirect target.");
+        }
+
         $code = 300 + $code;
         if (($code <=> 300) !== 0 && $code > 399) {
             return;
@@ -109,6 +113,58 @@ abstract class SimplePresenter implements IPresenter
         header("HTTP/1.1 $code");
         header("Location: $location");
         exit;
+    }
+
+    private function normalizeHost(string $host): string
+    {
+        $host = strtolower(trim($host));
+
+        // localhost:8080 -> localhost
+        if (str_contains($host, ":")) {
+            $host = explode(":", $host)[0];
+        }
+
+        return $host;
+    }
+
+    private function isSafeRedirect(string $location): bool
+    {
+        // Check relative paths. Disallow the use of workarounds.
+        if (
+            str_starts_with($location, "/")
+            && !str_starts_with($location, "//")
+            && !str_contains($location, "\\")
+        ) {
+            return true;
+        }
+
+        $scheme = strtolower((string) parse_url($location, PHP_URL_SCHEME));
+        if (!in_array($scheme, ["http", "https"], true)) {
+            return false;
+        }
+
+        $host = parse_url($location, PHP_URL_HOST);
+        if (!is_string($host) || $host === "") {
+            return false;
+        }
+        $host = $this->normalizeHost($host);
+
+        // Whitelist of domains to which redirects are allowed
+        $allowedHosts = [];
+
+        // The request's own host is always a valid redirect target, so
+        // redirects work out of the box even without any configuration.
+        $currentHost = $_SERVER["HTTP_HOST"] ?? $_SERVER["SERVER_NAME"] ?? "";
+        if ($currentHost !== "") {
+            $allowedHosts[] = $this->normalizeHost($currentHost);
+        }
+
+        // Trusted domains (specified in the config)
+        foreach (CHANDLER_ROOT_CONF["security"]["trustedRedirectHosts"] ?? [] as $trusted) {
+            $allowedHosts[] = $this->normalizeHost((string) $trusted);
+        }
+
+        return in_array($host, $allowedHosts, true);
     }
 
     protected function pass(string $to, ...$args): void
