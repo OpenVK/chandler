@@ -170,6 +170,19 @@ final class HelloPresenter extends SimplePresenter
 
 Templates go in `Web/Presenters/templates/{Presenter}/{Action}.latte`.
 
+### Linting templates
+
+Templates can be checked without running the application:
+
+```bash
+vendor/bin/chandler-latte-lint Web/Presenters/templates
+```
+
+The linter compiles every `.latte` file with the standard presenter engine
+(strict parsing, Chandler's `{css}`, `{script}`, `{script_module}` and
+`{presenter}` tags), so syntax errors and broken HTML nesting fail the check.
+Pass several paths to lint multiple directories.
+
 ## Scheduled Tasks (Cron)
 
 Chandler provides a built-in scheduler and runner for background tasks using a fluent PHP API. Tasks are defined in `cron.php` (or discovered from extension `cron.php` files) and executed via your system crontab.

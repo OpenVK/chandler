@@ -13,7 +13,7 @@ Chandler provides the foundation — routing, ORM, templating, auth, sessions, e
 
 - **Routing** — YAML-defined routes with typed placeholders (`{num}`, `{text}`, `{slug}`, custom `{?regex}`)
 - **ORM** — Nette Database with ActiveRow-style `DBEntity` models, soft-delete, change logging
-- **Templating** — [Latte](https://latte.nette.org) engine with custom `{css}`, `{script}`, `{presenter}` tags
+- **Templating** — [Latte](https://latte.nette.org) engine with custom `{css}`, `{script}`, `{presenter}` tags, linted by `chandler-latte-lint`
 - **Auth** — Argon2id password hashing, session tokens (JWT), IP/UA validation
 - **Captcha** — built-in, served as WebP, stored captcha with encryption
 - **Email** — Symfony Mailer SMTP or Postmark API

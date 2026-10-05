@@ -1,21 +1,63 @@
 #!/usr/bin/env php
 <?php
 
-$_SERVER["HTTP_ACCEPT_LANGUAGE"] = false;
-$bootstrap = require(__DIR__ . "/../chandler/Bootstrap.php");
-$bootstrap->ignite(true);
-
-$path = $argv[1] ?? '.';
+declare(strict_types=1);
 
 use Chandler\MVC\SimplePresenter;
+use Latte\Essential\TranslatorExtension;
+use Latte\Feature;
+use Latte\Tools\Linter;
 
-final class TestPresenter extends SimplePresenter {}
+$autoloadFiles = [
+    __DIR__ . "/../vendor/autoload.php", // repository checkout
+    __DIR__ . "/../../../autoload.php",  // installed as a dependency
+];
 
-$presenter = new TestPresenter();
-$latte = $presenter->getTemplatingEngine();
-$latte->addExtension(new \Latte\Essential\TranslatorExtension(tr(...)));
-$latte->setStrictParsing();
-$linter = new Latte\Tools\Linter(engine: $latte);
+$autoloaded = false;
+foreach ($autoloadFiles as $autoloadFile) {
+    if (is_file($autoloadFile)) {
+        require $autoloadFile;
+        $autoloaded = true;
+        break;
+    }
+}
 
-$ok = $linter->scanDirectory($path);
+if (!$autoloaded) {
+    fwrite(STDERR, "Install packages using Composer.\n");
+    exit(1);
+}
+
+$paths = array_slice($argv, 1);
+if ($paths === []) {
+    fwrite(STDERR, "Usage: chandler-latte-lint <path> [<path>...]\n");
+    exit(1);
+}
+
+// SimplePresenter::getTemplatingEngine() needs CHANDLER_ROOT for the Latte cache directory.
+// The linter only compiles templates, so a scratch directory is sufficient.
+if (!defined("CHANDLER_ROOT")) {
+    define("CHANDLER_ROOT", sys_get_temp_dir() . "/chandler-latte-lint");
+}
+
+$tempDirectory = CHANDLER_ROOT . "/tmp/cache/templates";
+if (!is_dir($tempDirectory)) {
+    mkdir($tempDirectory, recursive: true);
+}
+
+final class LatteLintPresenter extends SimplePresenter
+{
+}
+
+$latte = (new LatteLintPresenter())->getTemplatingEngine();
+$latte->addExtension(new TranslatorExtension(function_exists("tr") ? tr(...) : null));
+$latte->setFeature(Feature::StrictParsing, true);
+$latte->enablePhpLinter(PHP_BINARY);
+
+$linter = new Linter(engine: $latte);
+
+$ok = true;
+foreach ($paths as $path) {
+    $ok = $linter->scanDirectory($path) && $ok;
+}
+
 exit($ok ? 0 : 1);

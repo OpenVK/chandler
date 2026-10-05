@@ -38,6 +38,9 @@ jobs:
       - name: PHP CS Fixer
         run: vendor/bin/php-cs-fixer fix --dry-run --diff
 
+      - name: Latte lint
+        run: php bin/chandler-latte-lint examples/basic/Web/Presenters/templates
+
       - name: PHPStan
         run: vendor/bin/phpstan analyse --no-progress
 

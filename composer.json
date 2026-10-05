@@ -6,6 +6,9 @@
     "support": {
         "source": "https://github.com/OpenVK/chandler"
     },
+    "bin": [
+        "bin/chandler-latte-lint"
+    ],
     "scripts": {
         "fix": "php-cs-fixer fix",
         "lint": "php-cs-fixer fix --dry-run --diff --verbose",
