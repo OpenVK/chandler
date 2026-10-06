@@ -6,6 +6,15 @@
     "support": {
         "source": "https://github.com/OpenVK/chandler"
     },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "/opt/phpstan-latte",
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
     "bin": [
         "bin/chandler-latte-lint"
     ],
@@ -47,8 +56,14 @@
             "chandler/procedural/captcha.php"
         ]
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Chandler\\PHPStanLatte\\": "tools/phpstan-latte/"
+        }
+    },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.90",
-        "phpstan/phpstan": "^2.2"
+        "phpstan/phpstan": "^2.2",
+        "efabrica/phpstan-latte": "^0.20.1"
     }
 }

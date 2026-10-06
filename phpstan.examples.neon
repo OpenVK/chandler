@@ -1,3 +1,6 @@
+includes:
+    - vendor/efabrica/phpstan-latte/rules.neon
+
 parameters:
     level: 0
     # Avoid mentiong a path that may lead to examples/basic/vendor
@@ -9,3 +12,17 @@ parameters:
         - examples/basic/htdocs/
         - examples/basic/Web/
     tmpDir: tmp/phpstan-examples
+    bootstrapFiles:
+        - examples/basic/phpstan-bootstrap.php
+    latte:
+        engineBootstrap: tools/phpstan-latte/latte.engine.php
+        tmpDir: tmp/phpstan-examples/latte
+        reportUnanalysedTemplates: true
+        templateTypes:
+            - Chandler\MVC\TemplateScope
+        features:
+            analyseLayoutFiles: true
+
+services:
+    - Chandler\PHPStanLatte\ChandlerPresenterTemplateResolver
+    - Chandler\PHPStanLatte\ChandlerErrorTemplateResolver
