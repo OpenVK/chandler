@@ -10,6 +10,7 @@ use Efabrica\PHPStanLatte\LatteTemplateResolver\LatteTemplateResolverResult;
 use Efabrica\PHPStanLatte\PhpDoc\LattePhpDocResolver;
 use Efabrica\PHPStanLatte\Resolver\LayoutResolver\LayoutPathResolver;
 use Efabrica\PHPStanLatte\Template\Template;
+use Efabrica\PHPStanLatte\Template\TemplateContext;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Rules\RuleErrorBuilder;
@@ -53,6 +54,17 @@ final class ChandlerPresenterTemplateResolver extends AbstractClassTemplateResol
         return ['Chandler\MVC\IPresenter'];
     }
 
+    /**
+     * Router renders a template after the whole presenter lifecycle, so variables assigned
+     * in onStartup() and onBeforeRender() belong to every template of the presenter.
+     */
+    protected function getClassGlobalTemplateContext(ClassReflection $classReflection, LatteContext $latteContext): TemplateContext
+    {
+        return parent::getClassGlobalTemplateContext($classReflection, $latteContext)
+            ->union($latteContext->getMethodTemplateContext($classReflection->getName(), 'onStartup'))
+            ->union($latteContext->getMethodTemplateContext($classReflection->getName(), 'onBeforeRender'));
+    }
+
     protected function getClassResult(ClassReflection $classReflection, LatteContext $latteContext): LatteTemplateResolverResult
     {
         $result = new LatteTemplateResolverResult();
@@ -81,10 +93,16 @@ final class ChandlerPresenterTemplateResolver extends AbstractClassTemplateResol
 
             $templatePath = $this->findTemplate($templatesBaseDir, $presenterName, $action);
             if ($templatePath === null) {
-                $result->addErrorFromBuilder(RuleErrorBuilder::message("Cannot resolve latte template for {$classReflection->getNativeReflection()->getShortName()}::{$methodName}().")
-                    ->identifier('latte.cannotResolve')
-                    ->file($classReflection->getFileName() ?? 'unknown')
-                    ->line($this->getMethodStartLine($classReflection, $methodName)));
+                $mayRenderNothing = $latteContext->methodCallFinder()->hasAnyOutputCalls($classReflection->getName(), $methodName)
+                    || $latteContext->methodCallFinder()->hasAnyTerminatingCalls($classReflection->getName(), $methodName)
+                    || $latteContext->methodFinder()->hasAnyAlwaysTerminated($classReflection->getName(), $methodName);
+
+                if (!$mayRenderNothing) {
+                    $result->addErrorFromBuilder(RuleErrorBuilder::message("Cannot resolve latte template for {$classReflection->getNativeReflection()->getShortName()}::{$methodName}().")
+                        ->identifier('latte.cannotResolve')
+                        ->file($classReflection->getFileName() ?? 'unknown')
+                        ->line($this->getMethodStartLine($classReflection, $methodName)));
+                }
                 continue;
             }
 
