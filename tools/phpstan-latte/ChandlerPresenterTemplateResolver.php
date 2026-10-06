@@ -105,13 +105,12 @@ final class ChandlerPresenterTemplateResolver extends AbstractClassTemplateResol
                 ->union($latteContext->getMethodTemplateContext($classReflection->getName(), $methodName));
             $templateContext = $this->withoutTemplateControlVariables($rawTemplateContext);
 
-            [$templatePaths, $mayUseDefault] = $this->resolveTemplateOverrides($rawTemplateContext, $templatesBaseDir);
-            if ($mayUseDefault || $templatePaths === []) {
-                $defaultTemplate = $this->findTemplate($templatesBaseDir, $presenterName, $action);
-                if ($defaultTemplate !== null) {
-                    $templatePaths[] = $defaultTemplate;
-                }
+            $templatePaths = $this->resolveTemplateOverrides($rawTemplateContext, $templatesBaseDir);
+            $defaultTemplate = $this->findTemplate($templatesBaseDir, $presenterName, $action);
+            if ($defaultTemplate !== null) {
+                $templatePaths[] = $defaultTemplate;
             }
+            $templatePaths = array_values(array_unique($templatePaths));
 
             if ($templatePaths === []) {
                 if (!$this->methodMayRenderNothing($latteContext, $classReflection->getName(), $methodName)) {
@@ -179,19 +178,16 @@ final class ChandlerPresenterTemplateResolver extends AbstractClassTemplateResol
     }
 
     /**
-     * @return array{0: string[], 1: bool} resolved template paths and whether the default template may be rendered too
+     * @return string[] template paths from constant $this->template->_template assignments
      */
     private function resolveTemplateOverrides(TemplateContext $templateContext, string $templatesBaseDir): array
     {
         $templatePaths = [];
-        $mayUseDefault = true;
 
         foreach ($templateContext->getVariables() as $variable) {
             if ($variable->getName() !== '_template') {
                 continue;
             }
-
-            $mayUseDefault = $variable->mightBeUndefined();
 
             foreach ($variable->getType()->getConstantStrings() as $constantString) {
                 $template = $constantString->getValue();
@@ -209,7 +205,7 @@ final class ChandlerPresenterTemplateResolver extends AbstractClassTemplateResol
             }
         }
 
-        return [array_values(array_unique($templatePaths)), $mayUseDefault];
+        return array_values(array_unique($templatePaths));
     }
 
     private function withoutTemplateControlVariables(TemplateContext $templateContext): TemplateContext
