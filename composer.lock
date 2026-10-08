@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0563a9920037ae47bb2a1605951e1a8b",
+    "content-hash": "cef5d8c51e5eb12b6072c23920dad49d",
     "packages": [
         {
             "name": "doctrine/deprecations",
@@ -3121,11 +3121,17 @@
         },
         {
             "name": "efabrica/phpstan-latte",
-            "version": "0.20.1",
+            "version": "dev-latte-3.1-support",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/OpenVK/phpstan-latte.git",
+                "reference": "23cf7a9299c71a595a6ea8ee308e7344e68b280d"
+            },
             "dist": {
-                "type": "path",
-                "url": "/opt/phpstan-latte",
-                "reference": "a057432e680f23a4ef58330c3a5c92d212b8c697"
+                "type": "zip",
+                "url": "https://api.github.com/repos/OpenVK/phpstan-latte/zipball/23cf7a9299c71a595a6ea8ee308e7344e68b280d",
+                "reference": "23cf7a9299c71a595a6ea8ee308e7344e68b280d",
+                "shasum": ""
             },
             "require": {
                 "ext-json": "*",
@@ -3170,10 +3176,10 @@
             "keywords": [
                 "static analysis"
             ],
-            "transport-options": {
-                "symlink": true,
-                "relative": false
-            }
+            "support": {
+                "source": "https://github.com/OpenVK/phpstan-latte/tree/latte-3.1-support"
+            },
+            "time": "2026-10-06T13:18:08+00:00"
         },
         {
             "name": "ergebnis/agent-detector",
@@ -3560,11 +3566,11 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.3.0",
+            "version": "2.3.1",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/b1f9890d9af53a25c58129e78f0aadd31f90d7f4",
-                "reference": "b1f9890d9af53a25c58129e78f0aadd31f90d7f4",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/6155239b488e95d26d1ebd95c6b4bb294d7f09db",
+                "reference": "6155239b488e95d26d1ebd95c6b4bb294d7f09db",
                 "shasum": ""
             },
             "require": {
@@ -3620,7 +3626,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-10-06T06:15:36+00:00"
+            "time": "2026-10-08T21:09:11+00:00"
         },
         {
             "name": "phpstan/phpstan-nette",
@@ -5052,7 +5058,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": {
+        "efabrica/phpstan-latte": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
