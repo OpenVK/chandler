@@ -3,4 +3,5 @@ parameters:
     paths:
         - chandler/
         - bin/
+        - tools/
     tmpDir: tmp/phpstan

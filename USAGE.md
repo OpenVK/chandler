@@ -183,6 +183,26 @@ The linter compiles every `.latte` file with the standard presenter engine
 `{presenter}` tags), so syntax errors and broken HTML nesting fail the check.
 Pass several paths to lint multiple directories.
 
+### PHPStan template analysis
+
+The Laravel-like `latte` section in `phpstan.examples.neon` is a complete
+example: it analyses presenter templates, layouts and error templates through
+`Chandler\PHPStanLatte\ChandlerPresenterTemplateResolver`. To use it in an app:
+
+- add the `efabrica/phpstan-latte` fork as a dev dependency and add its VCS
+  repository to the **application's** `composer.json` (Composer repositories
+  are not inherited from dependencies);
+- register the resolvers as PHPStan services;
+- declare `Chandler\MVC\SimplePresenter` as `earlyTerminatingMethodCalls`, so
+  actions that only call `redirect()`, `notFound()`, `terminate()`,
+  `throwError()` or `pass()` do not get a false `latte.cannotResolve`;
+- keep `csrfToken` in `latte.globalVariables` when the app does not analyse
+  `SimplePresenter.php` itself — it is set in `onBeforeRender()`.
+
+The resolver currently ignores `_templatePath`, so themed templates are not
+analysed. Do not add theme directories to `paths` while
+`reportUnanalysedTemplates` is enabled, or they will be reported as unanalysed.
+
 ## Scheduled Tasks (Cron)
 
 Chandler provides a built-in scheduler and runner for background tasks using a fluent PHP API. Tasks are defined in `cron.php` (or discovered from extension `cron.php` files) and executed via your system crontab.

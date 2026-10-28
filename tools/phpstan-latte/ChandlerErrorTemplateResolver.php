@@ -26,6 +26,10 @@ use function str_starts_with;
  * SimplePresenter::throwError() renders them with a fixed set of variables,
  * so there is no render call static analysis could follow. The variables
  * mirror the array passed to Latte by throwError().
+ *
+ * Only the @error* naming convention is resolved. Bootstrap::renderErrorPage()
+ * can point at an arbitrary path from errorPages.client; such custom names
+ * are not discovered automatically.
  */
 final class ChandlerErrorTemplateResolver implements CustomLatteTemplateResolverInterface
 {
