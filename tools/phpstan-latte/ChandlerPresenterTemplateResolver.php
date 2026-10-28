@@ -113,6 +113,9 @@ final class ChandlerPresenterTemplateResolver extends AbstractClassTemplateResol
             $templateContext = $this->withoutTemplateControlVariables($rawTemplateContext);
 
             $templatePaths = $this->resolveTemplateOverrides($rawTemplateContext, $templatesBaseDir);
+            // Keep the default template even when _template is present: the
+            // control variable may be assigned conditionally. This is an
+            // intentional over-approximation.
             $defaultTemplate = $this->findTemplate($templatesBaseDir, $presenterName, $action);
             if ($defaultTemplate !== null) {
                 $templatePaths[] = $defaultTemplate;
@@ -233,6 +236,9 @@ final class ChandlerPresenterTemplateResolver extends AbstractClassTemplateResol
         ));
     }
 
+    /**
+     * @param class-string $className
+     */
     private function methodMayRenderNothing(LatteContext $latteContext, string $className, string $methodName): bool
     {
         return $latteContext->methodCallFinder()->hasAnyOutputCalls($className, $methodName)
@@ -244,8 +250,9 @@ final class ChandlerPresenterTemplateResolver extends AbstractClassTemplateResol
     {
         $templatesDir = $templatesBaseDir . DIRECTORY_SEPARATOR . $presenterName . DIRECTORY_SEPARATOR;
 
-        // Router lowercases the route action and then applies ucfirst() to build the template name;
-        // render methods keep their own casing, so both variants are tried.
+        // Routes conventionally use lower-case actions and Router applies
+        // ucfirst() to the action, while render methods keep their own casing.
+        // Try both variants to cover either convention.
         $candidates = [
             $templatesDir . $action . '.latte',
             $templatesDir . ucfirst(strtolower($action)) . '.latte',
