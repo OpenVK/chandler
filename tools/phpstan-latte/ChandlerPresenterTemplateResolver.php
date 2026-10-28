@@ -68,12 +68,20 @@ final class ChandlerPresenterTemplateResolver extends AbstractClassTemplateResol
     /**
      * Router renders a template after the whole presenter lifecycle, so variables assigned
      * in onStartup() and onBeforeRender() belong to every template of the presenter.
+     * Overridden lifecycle methods (for example GiftsPresenter::onStartup()) are collected
+     * without the parent method body, so walk the whole inheritance chain.
      */
     protected function getClassGlobalTemplateContext(ClassReflection $classReflection, LatteContext $latteContext): TemplateContext
     {
-        return parent::getClassGlobalTemplateContext($classReflection, $latteContext)
-            ->union($latteContext->getMethodTemplateContext($classReflection->getName(), 'onStartup'))
-            ->union($latteContext->getMethodTemplateContext($classReflection->getName(), 'onBeforeRender'));
+        $templateContext = parent::getClassGlobalTemplateContext($classReflection, $latteContext);
+
+        foreach ([$classReflection->getName(), ...$classReflection->getParentClassesNames()] as $className) {
+            $templateContext = $templateContext
+                ->union($latteContext->getMethodTemplateContext($className, 'onStartup'))
+                ->union($latteContext->getMethodTemplateContext($className, 'onBeforeRender'));
+        }
+
+        return $templateContext;
     }
 
     protected function getClassResult(ClassReflection $classReflection, LatteContext $latteContext): LatteTemplateResolverResult
