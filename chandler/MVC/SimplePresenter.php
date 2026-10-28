@@ -27,7 +27,10 @@ abstract class SimplePresenter implements IPresenter
     public const REDIRECT_TEMPORARY_PRESISTENT = 7;
 
     protected $mmReader;
-    protected TemplateScope $template;
+
+    /** @var TemplateScope */
+    protected $template;
+
     protected $errorTemplate = null;
 
     public function __construct()
