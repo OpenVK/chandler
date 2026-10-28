@@ -3118,16 +3118,16 @@
         },
         {
             "name": "efabrica/phpstan-latte",
-            "version": "0.21.0",
+            "version": "0.21.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/OpenVK/phpstan-latte.git",
-                "reference": "c43ec38f9c26c43c36e0b939fce21d8a3594074f"
+                "reference": "7b9c90979ce26c893cbdbdbed783997cd1565829"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/OpenVK/phpstan-latte/zipball/c43ec38f9c26c43c36e0b939fce21d8a3594074f",
-                "reference": "c43ec38f9c26c43c36e0b939fce21d8a3594074f",
+                "url": "https://api.github.com/repos/OpenVK/phpstan-latte/zipball/7b9c90979ce26c893cbdbdbed783997cd1565829",
+                "reference": "7b9c90979ce26c893cbdbdbed783997cd1565829",
                 "shasum": ""
             },
             "require": {
@@ -3176,9 +3176,9 @@
                 "static analysis"
             ],
             "support": {
-                "source": "https://github.com/OpenVK/phpstan-latte/tree/0.21.0"
+                "source": "https://github.com/OpenVK/phpstan-latte/tree/0.21.1"
             },
-            "time": "2026-10-28T11:56:23+00:00"
+            "time": "2026-10-28T12:36:32+00:00"
         },
         {
             "name": "ergebnis/agent-detector",
