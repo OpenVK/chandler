@@ -14,6 +14,13 @@ parameters:
     tmpDir: tmp/phpstan-examples
     bootstrapFiles:
         - examples/basic/phpstan-bootstrap.php
+    earlyTerminatingMethodCalls:
+        Chandler\MVC\SimplePresenter:
+            - notFound
+            - redirect
+            - terminate
+            - throwError
+            - pass
     latte:
         engineBootstrap: tools/phpstan-latte/latte.engine.php
         tmpDir: tmp/phpstan-examples/latte

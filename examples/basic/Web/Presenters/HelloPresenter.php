@@ -78,6 +78,10 @@ final class HelloPresenter extends SimplePresenter
         $this->getTemplatingEngine()->render(__DIR__ . '/templates/Hello/ExplicitView.latte', [
             'message' => 'Rendered explicitly',
         ]);
+
+        // The template is rendered directly; stop Router from trying to
+        // render the (intentionally absent) Hello/Explicit.latte afterwards.
+        $this->terminate();
     }
 
     /**
@@ -87,5 +91,16 @@ final class HelloPresenter extends SimplePresenter
     {
         $this->template->message   = 'Rendered through _template';
         $this->template->_template = 'Hello/OverrideView.latte';
+    }
+
+    /**
+     * renderNotFoundOnly — fixture for actions that only terminate.
+     *
+     * There is no template; earlyTerminatingMethodCalls must suppress
+     * latte.cannotResolve for it.
+     */
+    public function renderNotFoundOnly(): void
+    {
+        $this->notFound();
     }
 }
