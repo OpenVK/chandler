@@ -25,7 +25,6 @@ use function is_dir;
 use function is_file;
 use function ltrim;
 use function preg_replace;
-use function str_ends_with;
 use function strtolower;
 use function substr;
 use function ucfirst;
@@ -121,6 +120,11 @@ final class ChandlerPresenterTemplateResolver extends AbstractClassTemplateResol
             $templatePaths = array_values(array_unique($templatePaths));
 
             if ($templatePaths === []) {
+                // Explicit $engine->render() calls were already collected above.
+                if ($latteContext->templateRenderFinder()->find($classReflection->getName(), $methodName) !== []) {
+                    continue;
+                }
+
                 if (!$this->methodMayRenderNothing($latteContext, $classReflection->getName(), $methodName)) {
                     $result->addErrorFromBuilder(RuleErrorBuilder::message("Cannot resolve latte template for {$classReflection->getNativeReflection()->getShortName()}::{$methodName}().")
                         ->identifier('latte.cannotResolve')
@@ -158,7 +162,15 @@ final class ChandlerPresenterTemplateResolver extends AbstractClassTemplateResol
 
             foreach ($templateRenders as $templateRender) {
                 $templatePath = $templateRender->getTemplatePath();
-                if ($templatePath === null || !is_file($templatePath)) {
+                if ($templatePath === null) {
+                    continue;
+                }
+
+                if (!is_file($templatePath)) {
+                    $result->addErrorFromBuilder(RuleErrorBuilder::message('Rendered latte template ' . $templatePath . ' does not exist.')
+                        ->identifier('latte.notFound')
+                        ->file($templateRender->getFile())
+                        ->line($templateRender->getLine()));
                     continue;
                 }
 
@@ -204,9 +216,6 @@ final class ChandlerPresenterTemplateResolver extends AbstractClassTemplateResol
                 }
 
                 $candidate = $template[0] === '/' ? $template : $templatesBaseDir . DIRECTORY_SEPARATOR . ltrim($template, '/');
-                if (!is_file($candidate) && !str_ends_with($candidate, '.latte')) {
-                    $candidate .= '.latte';
-                }
                 if (is_file($candidate)) {
                     $templatePaths[] = $candidate;
                 }
