@@ -20,6 +20,10 @@ parameters:
         reportUnanalysedTemplates: true
         templateTypes:
             - Chandler\MVC\TemplateScope
+        globalVariables:
+            # Set by SimplePresenter::onBeforeRender(); chandler/ itself is not
+            # in the analysed paths of this config.
+            csrfToken: string
         features:
             analyseLayoutFiles: true
 

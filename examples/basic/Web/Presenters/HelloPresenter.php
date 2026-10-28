@@ -65,4 +65,27 @@ final class HelloPresenter extends SimplePresenter
         $this->template->name  = $name;
         $this->template->title = "Hello, $name";
     }
+
+    /**
+     * renderExplicit — render a template directly through the Latte engine.
+     *
+     * There is intentionally no Hello/Explicit.latte default template:
+     * the resolver must use the explicit render call and must not report
+     * "Cannot resolve latte template".
+     */
+    public function renderExplicit(): void
+    {
+        $this->getTemplatingEngine()->render(__DIR__ . '/templates/Hello/ExplicitView.latte', [
+            'message' => 'Rendered explicitly',
+        ]);
+    }
+
+    /**
+     * renderOverride — pick a non-default template through _template.
+     */
+    public function renderOverride(): void
+    {
+        $this->template->message   = 'Rendered through _template';
+        $this->template->_template = 'Hello/OverrideView.latte';
+    }
 }
