@@ -20,7 +20,7 @@
     <meta charset="utf-8" />
     {* If the child template defined a "title" block, show it before
        the site name. Otherwise just show "Hello App". *}
-    <title>{ifset title}{$title} — {/ifset}Hello App</title>
+    <title>{ifset title}{include title} — {/ifset}Hello App</title>
     <style>
         body { font-family: sans-serif; max-width: 640px; margin: 2em auto; padding: 0 1em; line-height: 1.6; }
         h1 { color: #333; }

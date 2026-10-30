@@ -6,6 +6,12 @@
     "support": {
         "source": "https://github.com/OpenVK/chandler"
     },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/OpenVK/phpstan-latte"
+        }
+    ],
     "bin": [
         "bin/chandler-latte-lint"
     ],
@@ -33,7 +39,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Chandler\\": "chandler/"
+            "Chandler\\": "chandler/",
+            "Chandler\\PHPStanLatte\\": "tools/phpstan-latte/"
         },
         "classmap": [
             "chandler/Bootstrap.php"
@@ -49,6 +56,7 @@
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.90",
-        "phpstan/phpstan": "^2.2"
+        "phpstan/phpstan": "^2.2",
+        "efabrica/phpstan-latte": "^0.21"
     }
 }

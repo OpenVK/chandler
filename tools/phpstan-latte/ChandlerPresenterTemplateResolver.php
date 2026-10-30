@@ -1,0 +1,269 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Chandler\PHPStanLatte;
+
+use Efabrica\PHPStanLatte\LatteContext\LatteContext;
+use Efabrica\PHPStanLatte\LatteTemplateResolver\AbstractClassTemplateResolver;
+use Efabrica\PHPStanLatte\LatteTemplateResolver\LatteTemplateResolverResult;
+use Efabrica\PHPStanLatte\PhpDoc\LattePhpDocResolver;
+use Efabrica\PHPStanLatte\Resolver\LayoutResolver\LayoutPathResolver;
+use Efabrica\PHPStanLatte\Template\Template;
+use Efabrica\PHPStanLatte\Template\TemplateContext;
+use PHPStan\Reflection\ClassReflection;
+use PHPStan\Reflection\ReflectionProvider;
+use PHPStan\Rules\RuleErrorBuilder;
+
+use function array_filter;
+use function array_unique;
+use function array_values;
+use function dirname;
+use function file_exists;
+use function in_array;
+use function is_dir;
+use function is_file;
+use function ltrim;
+use function preg_replace;
+use function strtolower;
+use function substr;
+use function ucfirst;
+
+use const DIRECTORY_SEPARATOR;
+
+/**
+ * Resolves Latte templates rendered by Chandler presenters.
+ *
+ * Chandler renders templates from Router::delegateController(): it calls
+ * IPresenter::render<Action>(), then renders the template named by
+ * $this->template->_template (when set and the file exists) or the default
+ * <presenter dir>/templates/<PresenterName>/<Action>.latte.
+ *
+ * Templates rendered directly through $engine->render() (for example the
+ * error pages in OpenVKPresenter::onStartup()) are collected as well.
+ *
+ * Theme template paths (_templatePath) are not handled yet.
+ */
+final class ChandlerPresenterTemplateResolver extends AbstractClassTemplateResolver
+{
+    private const TEMPLATE_CONTROL_VARIABLES = ['_template', '_templatePath'];
+
+    private LayoutPathResolver $layoutPathResolver;
+
+    public function __construct(
+        LattePhpDocResolver $lattePhpDocResolver,
+        ReflectionProvider $reflectionProvider,
+        LayoutPathResolver $layoutPathResolver
+    ) {
+        parent::__construct($lattePhpDocResolver, $reflectionProvider);
+        $this->layoutPathResolver = $layoutPathResolver;
+    }
+
+    public function getSupportedClasses(): array
+    {
+        return ['Chandler\MVC\IPresenter'];
+    }
+
+    /**
+     * Router renders a template after the whole presenter lifecycle, so variables assigned
+     * in onStartup() and onBeforeRender() belong to every template of the presenter.
+     * Overridden lifecycle methods (for example GiftsPresenter::onStartup()) are collected
+     * without the parent method body, so walk the whole inheritance chain.
+     */
+    protected function getClassGlobalTemplateContext(ClassReflection $classReflection, LatteContext $latteContext): TemplateContext
+    {
+        $templateContext = parent::getClassGlobalTemplateContext($classReflection, $latteContext);
+
+        foreach ([$classReflection->getName(), ...$classReflection->getParentClassesNames()] as $className) {
+            $templateContext = $templateContext
+                ->union($latteContext->getMethodTemplateContext($className, 'onStartup'))
+                ->union($latteContext->getMethodTemplateContext($className, 'onBeforeRender'));
+        }
+
+        return $templateContext;
+    }
+
+    protected function getClassResult(ClassReflection $classReflection, LatteContext $latteContext): LatteTemplateResolverResult
+    {
+        $result = new LatteTemplateResolverResult();
+        if ($classReflection->isAbstract() || $classReflection->isAnonymous()) {
+            return $result;
+        }
+
+        $classDir = $this->getClassDir($classReflection);
+        if ($classDir === null) {
+            return $result;
+        }
+
+        $presenterName = (string) preg_replace('/Presenter$/', '', $classReflection->getNativeReflection()->getShortName());
+        $templatesBaseDir = (is_dir($classDir . DIRECTORY_SEPARATOR . 'templates') ? $classDir : dirname($classDir)) . DIRECTORY_SEPARATOR . 'templates';
+
+        $this->addExplicitRenderTemplates($result, $classReflection, $latteContext);
+
+        foreach ($this->getMethodsMatching($classReflection, '/^render.+$/') as $methodReflection) {
+            if (!$methodReflection->isPublic()) {
+                continue;
+            }
+
+            $methodName = $methodReflection->getName();
+            $action = substr($methodName, 6);
+
+            $rawTemplateContext = $this->getClassGlobalTemplateContext($classReflection, $latteContext)
+                ->union($latteContext->getMethodTemplateContext($classReflection->getName(), $methodName));
+            $templateContext = $this->withoutTemplateControlVariables($rawTemplateContext);
+
+            $templatePaths = $this->resolveTemplateOverrides($rawTemplateContext, $templatesBaseDir);
+            // Keep the default template even when _template is present: the
+            // control variable may be assigned conditionally. This is an
+            // intentional over-approximation.
+            $defaultTemplate = $this->findTemplate($templatesBaseDir, $presenterName, $action);
+            if ($defaultTemplate !== null) {
+                $templatePaths[] = $defaultTemplate;
+            }
+            $templatePaths = array_values(array_unique($templatePaths));
+
+            if ($templatePaths === []) {
+                // Explicit $engine->render() calls were already collected above.
+                if ($latteContext->templateRenderFinder()->find($classReflection->getName(), $methodName) !== []) {
+                    continue;
+                }
+
+                if (!$this->methodMayRenderNothing($latteContext, $classReflection->getName(), $methodName)) {
+                    $result->addErrorFromBuilder(RuleErrorBuilder::message("Cannot resolve latte template for {$classReflection->getNativeReflection()->getShortName()}::{$methodName}().")
+                        ->identifier('latte.cannotResolve')
+                        ->file($classReflection->getFileName() ?? 'unknown')
+                        ->line($this->getMethodStartLine($classReflection, $methodName)));
+                }
+                continue;
+            }
+
+            foreach ($templatePaths as $templatePath) {
+                $this->addTemplateWithLayout($result, $templatePath, $classReflection, $action, $templateContext);
+            }
+        }
+
+        return $result;
+    }
+
+    private function addExplicitRenderTemplates(LatteTemplateResolverResult $result, ClassReflection $classReflection, LatteContext $latteContext): void
+    {
+        foreach ($this->getMethodsMatching($classReflection, '/^(render|onStartup|onBeforeRender)/') as $methodReflection) {
+            if (!$methodReflection->isPublic()) {
+                continue;
+            }
+
+            $methodName = $methodReflection->getName();
+            $templateRenders = $latteContext->templateRenderFinder()->find($classReflection->getName(), $methodName);
+            if ($templateRenders === []) {
+                continue;
+            }
+
+            $templateContext = $this->withoutTemplateControlVariables(
+                $this->getClassGlobalTemplateContext($classReflection, $latteContext)
+                    ->union($latteContext->getMethodTemplateContext($classReflection->getName(), $methodName))
+            );
+
+            foreach ($templateRenders as $templateRender) {
+                $templatePath = $templateRender->getTemplatePath();
+                if ($templatePath === null) {
+                    continue;
+                }
+
+                if (!is_file($templatePath)) {
+                    $result->addErrorFromBuilder(RuleErrorBuilder::message('Rendered latte template ' . $templatePath . ' does not exist.')
+                        ->identifier('latte.notFound')
+                        ->file($templateRender->getFile())
+                        ->line($templateRender->getLine()));
+                    continue;
+                }
+
+                $this->addTemplateWithLayout(
+                    $result,
+                    $templatePath,
+                    $classReflection,
+                    $methodName,
+                    $templateContext
+                        ->mergeVariables($templateRender->getVariables())
+                        ->mergeComponents($templateRender->getComponents())
+                );
+            }
+        }
+    }
+
+    private function addTemplateWithLayout(LatteTemplateResolverResult $result, string $templatePath, ClassReflection $classReflection, string $action, TemplateContext $templateContext): void
+    {
+        $result->addTemplate(new Template($templatePath, $classReflection->getName(), $action, $templateContext));
+
+        $layoutPath = $this->layoutPathResolver->resolve($templatePath);
+        if ($layoutPath !== null && $layoutPath !== $templatePath) {
+            $result->addTemplate(new Template($layoutPath, $classReflection->getName(), $action, $templateContext));
+        }
+    }
+
+    /**
+     * @return string[] template paths from constant $this->template->_template assignments
+     */
+    private function resolveTemplateOverrides(TemplateContext $templateContext, string $templatesBaseDir): array
+    {
+        $templatePaths = [];
+
+        foreach ($templateContext->getVariables() as $variable) {
+            if ($variable->getName() !== '_template') {
+                continue;
+            }
+
+            foreach ($variable->getType()->getConstantStrings() as $constantString) {
+                $template = $constantString->getValue();
+                if ($template === '') {
+                    continue;
+                }
+
+                $candidate = $template[0] === '/' ? $template : $templatesBaseDir . DIRECTORY_SEPARATOR . ltrim($template, '/');
+                if (is_file($candidate)) {
+                    $templatePaths[] = $candidate;
+                }
+            }
+        }
+
+        return array_values(array_unique($templatePaths));
+    }
+
+    private function withoutTemplateControlVariables(TemplateContext $templateContext): TemplateContext
+    {
+        return $templateContext->withVariables(array_filter(
+            $templateContext->getVariables(),
+            static fn($variable): bool => !in_array($variable->getName(), self::TEMPLATE_CONTROL_VARIABLES, true)
+        ));
+    }
+
+    /**
+     * @param class-string $className
+     */
+    private function methodMayRenderNothing(LatteContext $latteContext, string $className, string $methodName): bool
+    {
+        return $latteContext->methodCallFinder()->hasAnyOutputCalls($className, $methodName)
+            || $latteContext->methodCallFinder()->hasAnyTerminatingCalls($className, $methodName)
+            || $latteContext->methodFinder()->hasAnyAlwaysTerminated($className, $methodName);
+    }
+
+    private function findTemplate(string $templatesBaseDir, string $presenterName, string $action): ?string
+    {
+        $templatesDir = $templatesBaseDir . DIRECTORY_SEPARATOR . $presenterName . DIRECTORY_SEPARATOR;
+
+        // Routes conventionally use lower-case actions and Router applies
+        // ucfirst() to the action, while render methods keep their own casing.
+        // Try both variants to cover either convention.
+        $candidates = [
+            $templatesDir . $action . '.latte',
+            $templatesDir . ucfirst(strtolower($action)) . '.latte',
+        ];
+
+        foreach ($candidates as $candidate) {
+            if (file_exists($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+}
