@@ -111,6 +111,8 @@ class Log extends DBEntity
     {
         $matrix = [];
         $maxlen = 0;
+        $omax   = 0;
+        $nmax   = 0;
         foreach ($old as $oindex => $ovalue) {
             $nkeys = array_keys($new, $ovalue);
             foreach ($nkeys as $nindex) {

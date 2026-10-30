@@ -2,7 +2,7 @@ includes:
     - vendor/efabrica/phpstan-latte/rules.neon
 
 parameters:
-    level: 0
+    level: 1
     # Avoid mentiong a path that may lead to examples/basic/vendor
     # as it contains a cyclical symlink to Chandler and bloats the check.
     # "excludePaths" does not help.
