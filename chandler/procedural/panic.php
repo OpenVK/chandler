@@ -11,9 +11,9 @@ use Chandler\Debug\DebuggerUtils;
  * @param string $description HTTP Error description
  * @param string $message Additional message to show to client
  * @param string|null $errorCode Error code / Tracy deduplication hash
- * @return void
+ * @return never
  */
-function chandler_http_panic(int $code = 400, string $description = "Bad Request", string $message = "", ?string $errorCode = null): void
+function chandler_http_panic(int $code = 400, string $description = "Bad Request", string $message = "", ?string $errorCode = null): never
 {
     $errorCode ??= DebuggerUtils::getLastErrorCode();
     $errorType = ($code >= 400 && $code < 500) ? "Client error" : "Server error";

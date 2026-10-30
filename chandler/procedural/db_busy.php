@@ -7,9 +7,9 @@ declare(strict_types=1);
  *
  * @api
  * @author kurotsun <celestine@vriska.ru>
- * @return void
+ * @return never
  */
-function chandler_db_busy(): void
+function chandler_db_busy(): never
 {
     $errPage = <<<'EOE'
         <html>

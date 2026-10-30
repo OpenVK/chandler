@@ -1,7 +1,12 @@
 parameters:
-    level: 0
+    level: 1
     paths:
         - chandler/
         - bin/
         - tools/
     tmpDir: tmp/phpstan
+    bootstrapFiles:
+        - phpstan-bootstrap.php
+    dynamicConstantNames:
+        CHANDLER_ROOT_CONF: 'array<string, mixed>'
+        CONNECTING_IP: string
